@@ -85,7 +85,7 @@ export default function OnBehalfOf({ vertical, resetSignal }) {
         <div className="seg" role="group" aria-label="Scenario">
           {story.scenarios.map((s) => <button key={s.id} type="button" aria-pressed={s.id === id} onClick={() => setId(s.id)}>{s.title}</button>)}
         </div>
-        <p><ClaimTag tag={sc.evidence} tags={story.tags} /> <span className="lesson" data-testid="obo-lesson">{sc.lesson}</span></p>
+        <p><ClaimTag tag={sc.evidence} tags={story.tags} /> <span className="lesson" data-testid="obo-lesson">{visible(sc.lesson)}</span></p>
         <label htmlFor="obo-resource">Backend (Resource)</label>
         <select id="obo-resource" value={shownChoice} onChange={(e) => { setResource(e.target.value); exec(id, e.target.value, scope); }}>
           {story.resourceChoices.map((c) => <option key={c} value={c}>{CHOICE_LABEL[c] || c}</option>)}
@@ -122,7 +122,7 @@ export default function OnBehalfOf({ vertical, resetSignal }) {
         <h2 id="obo-claims-h">Where each exchanged claim comes from</h2>
         <div className="scroll"><table className="tbl" data-testid="obo-claim-rows">
           <thead><tr><th scope="col">Claim</th><th scope="col">How well we know it</th><th scope="col">Note</th></tr></thead>
-          <tbody>{story.claimRows.map((r) => <tr key={r.claim}><th scope="row"><code>{r.claim}</code></th><td><ClaimTag tag={r.tag} tags={story.tags} /></td><td>{r.note}</td></tr>)}</tbody>
+          <tbody>{story.claimRows.map((r) => <tr key={r.claim}><th scope="row"><code>{r.claim}</code></th><td><ClaimTag tag={r.tag} tags={story.tags} /></td><td>{visible(r.note)}</td></tr>)}</tbody>
         </table></div>
         <h3>The exchange config (console swagger field names)</h3>
         <div className="scroll"><table className="tbl" data-testid="obo-config-rows">
@@ -133,7 +133,7 @@ export default function OnBehalfOf({ vertical, resetSignal }) {
       <section className="panel" aria-labelledby="obo-facts-h">
         <h2 id="obo-facts-h">What we know, and how well</h2>
         <ul className="facts" data-testid="obo-facts">
-          {story.facts.map((f) => <li key={f.id}><ClaimTag tag={f.tag} tags={story.tags} /> {f.text} <span className="muted">Source: {f.source}.</span></li>)}
+          {story.facts.map((f) => <li key={f.id}><ClaimTag tag={f.tag} tags={story.tags} /> {visible(f.text)} <span className="muted">Source: {visible(f.source)}.</span></li>)}
         </ul>
       </section>
       <WhyItMatters why={story.why} />

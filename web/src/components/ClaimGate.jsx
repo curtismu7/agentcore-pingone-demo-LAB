@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Json from "./Json";
 import { evaluate } from "../api";
 import { visible } from "../safeText";
@@ -51,12 +51,15 @@ function CustomEditor({ scenario, rule, onResult, resetSignal }) {
   const [ruleText, setRuleText] = useState(initialRule);
   const [error, setError] = useState(null);
   useEffect(() => { setTokenText(initialToken); setRuleText(initialRule); setError(null); }, [initialToken, initialRule, resetSignal]);
+  const seq = useRef(0);
   const run = async () => {
     setError(null);
     let token; let r;
     try { token = JSON.parse(tokenText); } catch { return setError("Token claims are not valid JSON."); }
     try { r = JSON.parse(ruleText); } catch { return setError("Rule is not valid JSON."); }
+    const mine = ++seq.current;
     const res = await evaluate({ token, rule: r });
+    if (mine !== seq.current) return; // a newer request is in flight: this answer is stale
     if (!res.ok) return setError(`${res.body.error || `HTTP ${res.status}`}${res.body.detail ? `: ${res.body.detail}` : ""}`);
     onResult(res.body);
   };
@@ -82,9 +85,12 @@ export default function ClaimGate({ story, resetSignal, requestedId, onSelect })
   const [result, setResult] = useState(null);
   const scenario = story.scenarios.find((s) => s.id === id) || story.scenarios[0];
   const [fail, setFail] = useState(null);
+  const seq = useRef(0);
   const run = useCallback(async (sid) => {
+    const mine = ++seq.current;
     setFail(null);
     const res = await evaluate({ scenario: sid }).catch(() => ({ ok: false, status: 0, body: {} }));
+    if (mine !== seq.current) return; // a newer request is in flight: this answer is stale
     if (res.ok) setResult(res.body); else { setResult(null); setFail(`Could not evaluate (${res.body.error || res.status}).`); }
   }, []);
   useEffect(() => { setResult(null); }, [resetSignal]);
@@ -94,9 +100,9 @@ export default function ClaimGate({ story, resetSignal, requestedId, onSelect })
       <section className="panel" aria-labelledby="sc-h">
         <h2 id="sc-h">Scenarios</h2>
         <div className="seg" role="group" aria-label="Scenario">
-          {story.scenarios.map((s) => <button key={s.id} type="button" aria-pressed={s.id === id} onClick={() => { setId(s.id); if (onSelect) onSelect(s.id); }}>{s.title}</button>)}
+          {story.scenarios.map((s) => <button key={s.id} type="button" aria-pressed={s.id === id} onClick={() => { setId(s.id); if (onSelect) onSelect(s.id); }}>{visible(s.title)}</button>)}
         </div>
-        <p className="lesson" data-testid="lesson">{scenario.lesson}</p>
+        <p className="lesson" data-testid="lesson">{visible(scenario.lesson)}</p>
       </section>
       <section className="panel" aria-labelledby="res-h">
         <h2 id="res-h">Result</h2>
@@ -119,7 +125,7 @@ export default function ClaimGate({ story, resetSignal, requestedId, onSelect })
         <p className="muted">{story.rule.note}</p>
         <h3>What we know, and how well</h3>
         <ul className="facts" data-testid="facts">
-          {story.facts.map((f) => <li key={f.id}><span className={STATUS_CLASS[f.status] || "tag"}>{f.status}</span> {f.text} <span className="muted">Source: {f.source}.</span></li>)}
+          {story.facts.map((f) => <li key={f.id}><span className={STATUS_CLASS[f.status] || "tag"}>{f.status}</span> {visible(f.text)} <span className="muted">Source: {visible(f.source)}.</span></li>)}
         </ul>
       </section>
       <CustomEditor scenario={scenario} rule={story.rule} onResult={setResult} resetSignal={resetSignal} />

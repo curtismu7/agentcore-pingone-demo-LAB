@@ -42,7 +42,11 @@ export default function App() {
   const tabsRef = useRef(null);
 
   useEffect(() => { getJson("/api/info").then(setInfo, () => setInfo(null)); }, []);
-  useEffect(() => { getJson(`/api/scenarios?vertical=${encodeURIComponent(vertical)}`).then((j) => { setStory(j); setError(null); }, (e) => setError(e.message)); }, [vertical]);
+  const storySeq = useRef(0);
+  useEffect(() => {
+    const mine = ++storySeq.current;
+    getJson(`/api/scenarios?vertical=${encodeURIComponent(vertical)}`).then((j) => { if (mine === storySeq.current) { setStory(j); setError(null); } }, (e) => { if (mine === storySeq.current) setError(e.message); });
+  }, [vertical]);
   useEffect(() => {
     const on = () => { const p = hashParts(); setTab(p.tab); setRequested(p.scenario); };
     window.addEventListener("hashchange", on);

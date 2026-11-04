@@ -61,6 +61,11 @@ test('hostile input: __proto__ keys, depth, count, length and shape are bounded'
   let deep = {}; let cur = deep;
   for (let i = 0; i < 100_000; i++) { cur.a = {}; cur = cur.a; }
   assert.throws(() => flattenClaims(deep), (e) => e instanceof ClaimsInputError && e.code === 'too_deep');
+  // the API-facing bound is exactly LIMITS.depth: one less is accepted, one more is refused
+  assert.equal(flattenClaims(Object.fromEntries(Array.from({ length: LIMITS.depth - 1 }, (_, i) => [`k${i}`, { n: 1 }]))).size, LIMITS.depth - 1);
+  const atLimit = {}; let c2 = atLimit;
+  for (let i = 0; i < LIMITS.depth; i++) { c2.a = {}; c2 = c2.a; }
+  assert.throws(() => flattenClaims(atLimit), (e) => e.code === 'too_deep');
   assert.throws(() => flattenClaims({ a: 'x'.repeat(LIMITS.string + 1) }), /longer/);
   assert.throws(() => flattenClaims(Object.fromEntries(Array.from({ length: LIMITS.keys + 1 }, (_, i) => [`k${i}`, 1]))), /more than/);
   for (const bad of [null, [], 'x', 5, undefined]) assert.throws(() => flattenClaims(bad), (e) => e.code === 'bad_token');

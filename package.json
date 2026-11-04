@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "What the Privilege gateway versions added (v1.261024 to v1.261030), in mock only: a nested-claim gate, scope gates, AgentCore governance, on-behalf-of, an AgentCore console, and the readings of v1.261029 and v1.261030. Ping release claims are UNVERIFIED on our tenant. No tenant, no outbound network.",
+  "description": "An AI agent on AWS Bedrock AgentCore Runtime whose identity comes from PingOne, in mock only: the M2M flow (the agent's own token), the USER_FEDERATION 3LO flow (a human login through the agent), and on-behalf-of delegation. Mock/Real toggle; Real ships disabled. No tenant, no outbound network.",
   "license": "MIT",
   "workspaces": [
     "server",

@@ -150,6 +150,8 @@ test('lifetime: the exchanged token expires at the caller\'s exp or five minutes
 });
 
 test('the checks run in a fixed order and a refusal says which were not reached; the verdict status and OAuth error are honest', () => {
+  // the exact order is part of the contract: signature, issuer, expiry, audience, subject, replay, act chain, resource, scope
+  assert.deepEqual(run({}).result.checks.map((c) => c.id), ['inbound_signature', 'inbound_issuer', 'inbound_expiry', 'inbound_audience', 'inbound_subject', 'replay', 'act_chain', 'resource', 'scope']);
   const r = run({ tamper: { sub: 'x' }, resource: '' }).result;
   assert.equal(r.code, 'bad_signature');
   assert.deepEqual(r.checks.map((c) => c.ok), [false, ...Array(8).fill(null)]);
