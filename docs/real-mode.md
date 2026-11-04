@@ -63,7 +63,34 @@ Mock mode keeps the hard zero-outbound guarantee. When the Real settings are pre
 `bedrock-agentcore.<AWS_REGION>.amazonaws.com`. Everything else - other regions, other services,
 random hosts - stays blocked and recorded. `server/test/netguard.test.js` pins this.
 
-## 5. Verify (never trust the toggle alone)
+## 5. Real 3LO (USER_FEDERATION): the human signs in
+
+The Real tab's second panel runs a live three-legged login. The measured pattern:
+
+1. `GetWorkloadAccessTokenForUserId` (POST `/identities/GetWorkloadAccessTokenForUserId`,
+   `{ workloadName, userId }`) - **the user-bound WAT is required**: the plain workload token
+   gets `AccessDeniedException` with `message: null` on USER_FEDERATION (measured 2026-11-04).
+2. `GetResourceOauth2Token` (`oauth2Flow USER_FEDERATION`, `forceAuthentication true`,
+   `resourceOauth2ReturnUrl`) -> `{ authorizationUrl, sessionUri }`.
+3. The human signs in (AgentCore's hosted consent page hands off to PingOne's hosted login).
+4. AgentCore redirects to the lab's `/api/real/callback?session_id=<sessionUri>`.
+5. `CompleteResourceTokenAuth` (`{ sessionUri, userIdentifier: { userId } }`) binds the session -
+   the pre-registration map in the lab server is keyed on `sessionUri` (gotchas 12/13).
+6. `GetResourceOauth2Token` again (`forceAuthentication false`, `sessionUri`) -> the token.
+
+Verified live: the returned token's `sub` is demoUser's PingOne user id
+(`1aee74ae-...`), `acr: Single_Factor`, `auth_time` the moment of sign-in - NOT the
+agent's client_id. That contrast is the demo's teaching point.
+
+**Return-URL gotcha (proxy deployments):** register the return URL WITHOUT the app's path
+prefix (`https://local.ping-devops.com:8443/api/real/callback`, not
+`/agentcore-pingone/api/real/callback`). The shared lab-proxy strips the prefix only on the
+exact entry route; a prefixed callback path arrives at the lab un-stripped, misses the `/api`
+router, and is silently answered by the SPA catch-all - the flow then fails with
+"unknown session" even though the sessionUri matches. The browser carries the lab cookie, so
+the un-prefixed URL routes correctly through the proxy's cookie map.
+
+## 6. Verify (never trust the toggle alone)
 
 ```
 curl -sk -X POST -H 'content-type: application/json' -H "origin: https://local.ping-devops.com:8443" \
