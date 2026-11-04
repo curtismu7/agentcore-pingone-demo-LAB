@@ -21,7 +21,7 @@ export function buildPack() {
     id: 'agentcore-pingone-demo',
     title: 'AgentCore PingOne LAB',
     version,
-    demo: { id: 'agentcore-pingone-demo', name: 'AgentCore PingOne LAB', catalog: 'D99', baseUrl: 'http://localhost:7601', doctor: '/api/health', tags: ['mcp', 'agent', 'claims', 'privilege', 'mock-only', 'token-exchange', 'agentcore'] },
+    demo: { id: 'agentcore-pingone-demo', name: 'AgentCore PingOne LAB', catalog: 'D114', baseUrl: 'http://localhost:7601', doctor: '/api/health', tags: ['mcp', 'agent', 'claims', 'privilege', 'mock-only', 'token-exchange', 'agentcore'] },
     glossary: [
       { id: 'act-claim', term: 'act claim (actor)', definition: 'A token claim naming the party acting on behalf of the subject (RFC 8693). In this lab it must be an OBJECT with a sub, such as {"sub": "orders-agent"}. The text "{}" is not an object and act.sub then does not exist.', aliases: ['act.sub', 'RFC 8693'] },
       { id: 'required-claims', term: 'RequiredClaims', definition: 'A mock Privilege policy rule shape: a list of claim paths and the values they must equal. All must match or the call is denied.', aliases: ['required claims'] },

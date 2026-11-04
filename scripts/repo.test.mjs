@@ -14,14 +14,14 @@ test('the files the standalone rules ask for are present, and the old SE/k8s and
   for (const f of ['k8s', 'scripts/k8s.test.mjs', '.env.example', 'web/src/tokens.css', 'web/src/components/diagram']) assert.ok(!fs.existsSync(path.join(root, f)), `${f} must not exist`);
 });
 
-test('the shelf entry is valid and portable: relative composeFile, loopback url, health path, catalog id D99, no hosted fields', () => {
+test('the shelf entry is valid and portable: relative composeFile, loopback url, health path, catalog id D114, no hosted fields', () => {
   const e = JSON.parse(read('docs/shelf-entry.json')).demos[0];
   assert.equal(e.id, 'agentcore-pingone-demo-LAB');
   assert.ok(e.description.length > 0 && e.description.length <= 300, 'the shelf refuses to start on a description over 300 characters');
   assert.equal(e.kind, 'Demo');
   assert.equal(e.healthPath, '/api/health');
   assert.match(e.url, /^http:\/\/localhost:76\d\d$/);
-  assert.equal(e.catalogId, 'D99', 'catalog id D99 is a placeholder until the owner confirms it');
+  assert.equal(e.catalogId, 'D114', 'catalog id D114 is a placeholder until the owner confirms it');
   assert.equal(e.composeFile, 'agentcore-pingone-demo-LAB/docker-compose.yml');
   assert.ok(!path.isAbsolute(e.composeFile), 'composeFile must be relative or a placeholder');
   assert.ok(!('mockUrl' in e) && !('where' in e), 'the hosted SE fields are gone');

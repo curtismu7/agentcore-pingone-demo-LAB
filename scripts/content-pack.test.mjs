@@ -52,9 +52,9 @@ test('the release tab and the 3LO tab have cards marked as claims, UNVERIFIED on
   for (const t of ['token-exchange', 'act-chain']) assert.ok(pack.glossary.some((g) => g.id === t && /UNVERIFIED on our tenant/.test(g.definition)), t);
 });
 
-test('the USER_FEDERATION card exists and the pack keeps catalog D99', () => {
+test('the USER_FEDERATION card exists and the pack keeps catalog D114', () => {
   const pack = buildPack();
   assert.ok(pack.cards.find((c) => c.id === 'concept-three-lo'));
   assert.ok(pack.glossary.find((g) => g.id === 'user-federation'));
-  assert.equal(pack.demo.catalog, 'D99');
+  assert.equal(pack.demo.catalog, 'D114');
 });

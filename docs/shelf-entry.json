@@ -9,8 +9,8 @@
       "healthPath": "/api/health",
       "composeFile": "agentcore-pingone-demo-LAB/docker-compose.yml",
       "composeOverlays": [],
-      "catalogId": "D99",
-      "notes": "Docker: HOST_PORT=7601 docker compose up --build -d (published on 127.0.0.1 only). Mock engine only: no tenant, no credentials, netguard blocks all outbound; Real mode is offered but 409s with a how-to until the owner wires a live engine. Catalog id D99 is a PLACEHOLDER (the owner to confirm). The M2M shape and the four 3LO shapes are measured on the owner's verified build; the step order and codes are the lab's own model.",
+      "catalogId": "D114",
+      "notes": "Docker: HOST_PORT=7601 docker compose up --build -d (published on 127.0.0.1 only). Mock engine only: no tenant, no credentials, netguard blocks all outbound; Real mode is offered but 409s with a how-to until the owner wires a live engine. Catalog id D114 (assigned by the owner 2026-11-04). The M2M shape and the four 3LO shapes are measured on the owner's verified build; the step order and codes are the lab's own model.",
       "pingProducts": []
     }
   ]

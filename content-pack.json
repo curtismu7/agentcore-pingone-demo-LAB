@@ -6,7 +6,7 @@
   "demo": {
     "id": "agentcore-pingone-demo",
     "name": "AgentCore PingOne LAB",
-    "catalog": "D99",
+    "catalog": "D114",
     "baseUrl": "http://localhost:7601",
     "doctor": "/api/health",
     "tags": [
