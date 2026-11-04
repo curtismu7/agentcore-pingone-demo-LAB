@@ -138,7 +138,7 @@ export default function App() {
             <>
               {presenter && tab !== "talk" && (
                 <aside className="presenter-say" data-testid="presenter-say" aria-label="Talk track">
-                  {story.talkTrack.filter((t) => (tab === "gate" ? ["say-first", "m2m", "trap", "unverified"] : tab === "three-lo" ? ["three-lo", "three-lo-vs-m2m", "unverified"] : tab === "obo" ? ["obo", "why-obo"] : ["m2m"]).includes(t.id)).map((t) => <p key={t.id}><strong>{t.title}.</strong> {t.say}</p>)}
+                  {story.talkTrack.filter((t) => (tab === "gate" ? ["say-first", "m2m", "trap", "unverified"] : tab === "three-lo" ? ["three-lo", "three-lo-vs-m2m", "unverified"] : tab === "obo" ? ["obo", "why-obo"] : tab === "real" ? ["say-first", "real-m2m", "real-3lo", "real-contrast"] : ["m2m"]).includes(t.id)).map((t) => <p key={t.id}><strong>{t.title}.</strong> {t.say}</p>)}
                 </aside>
               )}
               {tab === "gate" && <ClaimGate key={vertical} story={story} resetSignal={resetSignal} requestedId={requested} onSelect={pickScenario} />}

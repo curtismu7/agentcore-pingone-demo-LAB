@@ -4,7 +4,7 @@
 
 ## Say first
 
-Everything here is simulated. The tokens, the rules and the step data are invented by this app; only their shape follows what we measured on a real AgentCore + PingOne build.
+The scenario gate, the USER_FEDERATION walk-through and the on-behalf-of tab are simulated: invented tokens and rules whose shape follows what we measured on a real AgentCore + PingOne build. The Real tab is different - those tokens are minted live when the owner configures the real settings.
 
 ## M2M: the agent's own token
 
@@ -29,6 +29,18 @@ Ping release claim, UNVERIFIED on our tenant. The deck says the gateway swaps th
 ## Why it matters: Intent, Purpose, Behaviour (slide 48; on-behalf-of is one of its six rows) (Ping claims)
 
 Per Ping's deck (slide 48), UNVERIFIED on our tenant. Challenge: A tool name and arguments cannot say what was asked for, whether the agent was ever meant to do it, or whether it normally behaves this way. Policy built on the request alone cannot tell misuse from an agent doing its job. Technical value: Three separable signals: deterministic intent patterns and purpose declarations refuse hard; learned behaviour baselines drive alerts and approval. On-behalf-of gives the backend a token issued to it, with the original caller named in act. Business value: The enforceable declaration "this agent exists to reconcile invoices" unblocks unattended agents in processes that could not otherwise approve them.
+
+## Real tab: the live M2M token
+
+This one is real. The server asked AgentCore Identity for a workload access token, exchanged it at the token vault against the PingOne credential provider, and got back a genuine PingOne JWT. Decode it with the audience: aud = agentcore-lab-api, scope = orders:read, sub = the agent client_id. The token vault caches for its TTL, so two presses inside an hour return the same jti - that is a real behavior worth pointing at, not a bug.
+
+## Real tab: the live 3LO token
+
+Press Start real sign-in: the server mints a user-bound workload token, AgentCore returns a real PingOne authorization URL, and you sign in as a real user. The token that comes back has sub = that user's PingOne id and acr showing how they authenticated. Same tenant, same resource, different human in the claims.
+
+## The contrast is the lesson
+
+Put the two real tokens side by side: M2M sub is a client_id, 3LO sub is a person. A downstream rule that requires a specific client_id admits the agent; a rule on a human attribute admits the person and can carry the agent in act.sub for delegation. Everything the mock gate modelled, now with credentials that would actually verify.
 
 ## What we do not claim
 
