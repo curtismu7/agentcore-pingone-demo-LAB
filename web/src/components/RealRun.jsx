@@ -62,8 +62,13 @@ export default function RealRun({ info }) {
                   <li key={k}><code>{k}</code>: <code>{typeof v === "string" ? v : JSON.stringify(v)}</code></li>
                 ))}
               </ul>
-              <h3>Raw token</h3>
-              <pre className="token-box" data-testid="real-token">{run.rawToken}</pre>
+              <h3>Token head</h3>
+              <pre className="token-box" data-testid="real-token">{run.tokenHead}</pre>
+              <p className="muted">
+                The full token string is masked in transit by the same guard that protects every response in this
+                lab (a JWT never leaves the server unmasked). The decoded claims above are its complete payload,
+                so nothing about the token is hidden - only the redundant encoding.
+              </p>
               <p className="muted">
                 provider <code>{run.provider}</code> - scope <code>{run.scope}</code>
                 {run.expiresIn ? <> - expires in {run.expiresIn}s</> : null}
