@@ -56,7 +56,7 @@ function ThreeLoPanel({ realOn }) {
           {state === "waiting" ? "Waiting for sign-in..." : busy ? "Starting..." : "Start real sign-in"}
         </button>
       </div>
-      {state === "waiting" && <p className="banner" data-testid="real3lo-waiting">Complete the PingOne sign-in in the tab that just opened. This page polls until the callback lands.</p>}
+      {state === "waiting" && <p className="banner" data-testid="real3lo-waiting">Complete the PingOne sign-in in the tab that just opened (the link is single-use; press Start again for a fresh one). This page polls until the callback lands.</p>}
       {state === "done" && detail && (
         <div data-testid="real3lo-result">
           <h4>Decoded claims (the real user token)</h4>

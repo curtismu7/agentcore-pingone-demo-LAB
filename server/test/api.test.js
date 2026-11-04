@@ -195,3 +195,17 @@ test('GET /api/diagram serves the m2m-gate diagram-studio data, uncached; by nam
     assert.ok(obo.nodes.length > 0);
   });
 });
+
+test('the 3LO callback is prefix-tolerant: /agentcore-pingone/api/real/callback reaches the API, not the SPA', async () => {
+  await withServer(async (url) => {
+    // unknown session through the PREFIXED path: must be the API's JSON/502 answer, never index.html
+    const r = await fetch(`${url}/agentcore-pingone/api/real/callback?session_id=urn:fake`);
+    const text = await r.text();
+    assert.equal(r.status, 502);
+    assert.match(text, /Real 3LO failed/);
+    assert.equal(text.includes('<!doctype html'), false, 'the SPA must not answer a prefixed callback');
+    // a path with a totally different mount prefix behaves the same
+    const r2 = await fetch(`${url}/some/other/prefix/api/real/callback?session_id=urn:fake`);
+    assert.equal(r2.status, 502);
+  });
+});

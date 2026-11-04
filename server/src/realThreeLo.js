@@ -48,7 +48,14 @@ async function call({ path, payload, cfg }) {
   const headers = sigv4Headers({ accessKey: cfg.accessKey, secretKey: cfg.secretKey, sessionToken: cfg.sessionToken, region: cfg.region, host, path, body });
   const r = await fetch(`https://${host}${path}`, { method: 'POST', headers, body });
   const text = await r.text();
-  if (!r.ok) throw new Error(`AgentCore ${path} -> HTTP ${r.status}: ${text.slice(0, 300)}`);
+  if (!r.ok) {
+    // Measured trap: USER_FEDERATION refuses a PLAIN workload token with AccessDeniedException and a null
+    // message, while the same token works for M2M. Name the likely cause instead of surfacing a bare "None".
+    const hint = path === '/identities/oauth2/token' && r.status === 403 && /"message":\s*null/.test(text)
+      ? ' (measured trap: USER_FEDERATION needs a USER-BOUND workload token from GetWorkloadAccessTokenForUserId - a plain GetWorkloadAccessToken WAT is refused with a null message)'
+      : '';
+    throw new Error(`AgentCore ${path} -> HTTP ${r.status}: ${text.slice(0, 300)}${hint}`);
+  }
   return JSON.parse(text || '{}');
 }
 

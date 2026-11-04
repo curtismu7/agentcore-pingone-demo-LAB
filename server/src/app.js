@@ -156,6 +156,19 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   api.post('/reset', withWorkspace((ws, _req, res) => { workspaces.reset(ws); res.json({ reset: 'ok', workspace: ws }); }));
   api.use((_req, res) => res.status(404).json({ error: 'not_found' }));
   app.use('/api', api);
+  // Prefix-tolerant callback (measured gotcha: behind the shared lab-proxy, a registered return URL that carries
+  // the app's path prefix arrives here UN-stripped - /agentcore-pingone/api/real/callback - because the proxy only
+  // strips the prefix on its exact entry route). The SPA catch-all below would silently answer it with index.html,
+  // which looks like success while the flow dies with "unknown session". So: any path ENDING in /api/real/callback
+  // is routed into the API router, whatever prefix it arrived with. The canonical /api/real/callback above already
+  // matched; this catches the prefixed spelling and any future mount path.
+  app.use((req, res, next) => {
+    if (typeof req.path === 'string' && /\/api\/real\/callback$/.test(req.path)) {
+      req.url = req.path.slice(req.path.indexOf('/api/') + 4);
+      return api(req, res, next);
+    }
+    return next();
+  });
   if (fs.existsSync(path.join(WEB_DIST, 'index.html'))) {
     app.use(express.static(WEB_DIST));
     app.get(/^\/(?!api\/).*/, (_req, res) => res.sendFile(path.join(WEB_DIST, 'index.html')));

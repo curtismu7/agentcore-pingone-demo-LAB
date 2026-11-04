@@ -68,8 +68,10 @@ random hosts - stays blocked and recorded. `server/test/netguard.test.js` pins t
 The Real tab's second panel runs a live three-legged login. The measured pattern:
 
 1. `GetWorkloadAccessTokenForUserId` (POST `/identities/GetWorkloadAccessTokenForUserId`,
-   `{ workloadName, userId }`) - **the user-bound WAT is required**: the plain workload token
-   gets `AccessDeniedException` with `message: null` on USER_FEDERATION (measured 2026-11-04).
+   `{ workloadName, userId }`) - the user-bound WAT is required: a plain workload token is
+   refused on USER_FEDERATION with `AccessDeniedException` and a null message (measured
+   2026-11-04). The lab always mints the user-bound WAT, and the engine names this exact trap
+   in its error if it ever sees the null-message denial.
 2. `GetResourceOauth2Token` (`oauth2Flow USER_FEDERATION`, `forceAuthentication true`,
    `resourceOauth2ReturnUrl`) -> `{ authorizationUrl, sessionUri }`.
 3. The human signs in (AgentCore's hosted consent page hands off to PingOne's hosted login).
@@ -82,13 +84,13 @@ Verified live: the returned token's `sub` is demoUser's PingOne user id
 (`1aee74ae-...`), `acr: Single_Factor`, `auth_time` the moment of sign-in - NOT the
 agent's client_id. That contrast is the demo's teaching point.
 
-**Return-URL gotcha (proxy deployments):** register the return URL WITHOUT the app's path
-prefix (`https://local.ping-devops.com:8443/api/real/callback`, not
-`/agentcore-pingone/api/real/callback`). The shared lab-proxy strips the prefix only on the
-exact entry route; a prefixed callback path arrives at the lab un-stripped, misses the `/api`
-router, and is silently answered by the SPA catch-all - the flow then fails with
-"unknown session" even though the sessionUri matches. The browser carries the lab cookie, so
-the un-prefixed URL routes correctly through the proxy's cookie map.
+**Return-URL prefix tolerance (handled in code):** behind the shared lab-proxy, a return URL
+that carries the app's path prefix arrives at the lab UN-stripped (the proxy strips the prefix
+only on its exact entry route), which used to be silently answered by the SPA catch-all. The
+lab now routes ANY path ending in `/api/real/callback` into the API router
+(server/src/app.js), so either spelling works. The test
+`the 3LO callback is prefix-tolerant` pins it. The registered URL is the un-prefixed
+`https://local.ping-devops.com:8443/api/real/callback`.
 
 ## 6. Verify (never trust the toggle alone)
 
