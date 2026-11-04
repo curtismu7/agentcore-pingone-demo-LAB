@@ -2,6 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createMode, MODES } from '../src/mode.js';
 import { realConfigured } from '../src/real.js';
+import { isolateSharedEnv } from './helpers.js';
+
+isolateSharedEnv(); // the shared settings file may carry APD_REAL_ENGINE=1; these tests assert the mock default
 
 test('the mode defaults to mock while Real is unconfigured; the source switches at runtime', () => {
   const m = createMode({ env: {} });

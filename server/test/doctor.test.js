@@ -1,7 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { allPassed, runChecks } from '../src/doctor.js';
+import { isolateSharedEnv } from './helpers.js';
 import { DEFAULT_CAST } from '../src/cast.js';
+
+isolateSharedEnv(); // the shared settings file may carry APD_REAL_ENGINE=1; these tests assert the mock default
 
 test('every doctor check passes on a clean default environment', async () => {
   const checks = await runChecks({ env: {} });

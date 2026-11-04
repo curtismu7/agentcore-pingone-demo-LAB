@@ -560,3 +560,19 @@ describe("on-behalf-of tab", () => {
     expect(screen.getByLabelText("Backend (Resource)")).toHaveValue("orders");
   });
 });
+
+describe("Real tab", () => {
+  it("renders the Real tab (M2M + 3LO panels) without throwing when Real is available", async () => {
+    override.info = () => json({ source: "real", realAvailable: true, realReason: null, simulated: false });
+    render(<App />);
+    await screen.findByText("Allowed: act.sub matches");
+    await screen.findByTestId("mode-real");
+    const realTab = screen.getByRole("tab", { name: "Real" });
+    realTab.click();
+    await screen.findByTestId("real-run-read");
+    expect(screen.getByTestId("real-run-write")).toBeTruthy();
+    expect(screen.getByTestId("real3lo-start")).toBeTruthy();
+    expect(screen.getByTestId("real3lo-user").value).toBe("demoUser");
+    override.info = null;
+  });
+});

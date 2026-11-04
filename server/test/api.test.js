@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { rawHttp, withServer } from './helpers.js';
+import { rawHttp, withServer, isolateSharedEnv } from './helpers.js';
+
+isolateSharedEnv(); // the shared settings file may carry APD_REAL_ENGINE=1; these tests assert the mock default
 
 test('GET /api/health answers demo-health/1, ready and offline', async () => {
   await withServer(async (url) => {

@@ -29,3 +29,12 @@ export async function call(url, method, path, body, { ws = 'default', headers = 
   let json = null; try { json = JSON.parse(text); } catch { /* not JSON */ }
   return { status: r.status, headers: r.headers, text, json };
 }
+
+// Isolate a test from the owner's shared settings file (~/Development/.env may legitimately carry
+// APD_REAL_ENGINE=1 + the real settings, which would flip createMode's default to real). loadSharedEnv
+// reads process.env.STANDALONE_ENV; point it at an existing-but-empty file - a nonexistent path falls
+// through to the shared file by design. Idempotent; call at module top of any test that asserts the
+// mock default.
+export function isolateSharedEnv() {
+  process.env.STANDALONE_ENV = '/tmp/apd-empty-env/empty.env';
+}

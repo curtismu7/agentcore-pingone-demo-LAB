@@ -9,6 +9,7 @@ function ThreeLoPanel({ realOn }) {
   const [state, setState] = useState("idle"); // idle | waiting | done | error
   const [detail, setDetail] = useState(null);
   const [userId, setUserId] = useState("demoUser");
+  const [busy, setBusy] = useState(false);
   const pollRef = useRef(null);
 
   useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
