@@ -12,7 +12,7 @@ Catalog: D114 (assigned by the owner, 2026-11-04)
 
 **Mock mode (default).** Everything runs offline in one process. Tokens are mock-issued by this app and shown raw for education; the step order, error codes and check names are the lab's own model. Every host ends in `.example`, and a netguard blocks outbound connections (fetch, sockets, DNS, UDP send and connect) with a self-test and a test that asserts zero attempts. It needs no tenant and no credentials.
 
-**Real mode: the toggle is there, the engine is not built.** The header has a Mock | Real toggle on every page (rule 19: runtime switch, `POST /api/mode`, `GET /api/info` carries `realAvailable`). Real stays disabled with a how-to tooltip until the owner builds a live engine (AgentCore Runtime + PingOne worker app + a person access token) and opts in; pressing Real through the API answers 409 with the same message. No hosted build exists.
+**Real mode: built.** The header has a Mock | Real toggle on every page (rule 19: runtime switch, `POST /api/mode`, `GET /api/info` carries `realAvailable`). When the owner configures the Real settings (docs/real-mode.md), the Real tab mints a live PingOne token through AWS AgentCore Identity (M2M) and decodes it; without them Real stays disabled and the API answers 409 with the how-to.
 
 What it shows (tabs):
 
