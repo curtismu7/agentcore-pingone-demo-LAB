@@ -5,6 +5,7 @@ name: agentcore-pingone-demo-lab
 
 services:
   agentcore-pingone-demo-lab:
+    container_name: agentcore-pingone
     build: .
     ports:
       - "127.0.0.1:${HOST_PORT:-7601}:7601"
@@ -12,7 +13,7 @@ services:
       PORT: "7601"
       APD_BIND: 0.0.0.0
       APD_MODE: mock
-      LAB_ALLOWED_HOSTS: ${LAB_ALLOWED_HOSTS:-}
+      LAB_ALLOWED_HOSTS: ${LAB_ALLOWED_HOSTS:-agentcore-pingone.local.ping-devops.com}
     read_only: true
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]

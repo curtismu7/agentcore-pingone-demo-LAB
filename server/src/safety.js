@@ -90,7 +90,15 @@ export function sameOriginWrites(req, res, next) {
   const origin = req.headers.origin;
   if (origin) {
     let ok = false;
-    try { ok = new URL(origin).host.toLowerCase() === String(req.headers.host || '').toLowerCase(); } catch { /* malformed */ }
+    try {
+      const u = new URL(origin);
+      const hostRaw = String(req.headers.host || '').toLowerCase();
+      const hostBare = hostRaw.replace(/:\d+$/, '');
+      // Same origin, or the shared lab-proxy's own origin (https://local.ping-devops.com:8443) while the Host the
+      // request was sent to is one this lab allows (fleet pattern: proxy-origin write acceptance).
+      ok = u.host.toLowerCase() === hostRaw
+        || (u.protocol === 'https:' && u.hostname === 'local.ping-devops.com' && u.port === '8443' && (isLoopbackHost(hostBare) || allowedExtraHosts().has(hostBare)) && !u.username && !u.password);
+    } catch { /* malformed */ }
     if (!ok) return res.status(403).json({ error: 'cross_origin', message: 'writes must be same-origin' });
   }
   next();
