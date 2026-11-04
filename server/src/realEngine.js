@@ -11,7 +11,7 @@ const hmac = (key, data) => createHmac('sha256', key).update(data).digest();
 export function realEngineConfigured(env = process.env, shared = {}) {
   const e = { ...env, ...shared };
   return Boolean(e.APD_REAL_ENGINE === '1' && e.AWS_ACCESS_KEY_ID && e.AWS_SECRET_ACCESS_KEY
-    && e.APD_REAL_WORKLOAD_NAME && e.APD_REAL_PROVIDER_NAME && e.AWS_REGION);
+    && e.APD_REAL_WORKLOAD_NAME && e.APD_REAL_PROVIDER_NAME && e.AWS_REGION && e.APD_REAL_RETURN_URL);
 }
 
 function sigv4Headers({ accessKey, secretKey, sessionToken, region, host, path, body, method = 'POST' }) {

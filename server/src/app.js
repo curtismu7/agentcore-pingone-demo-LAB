@@ -20,12 +20,14 @@ import { createWorkspaces, workspaceFrom } from './workspaces.js';
 import { createReleaseRouter } from './releaseRoutes.js';
 import { maskDeep, maskTypedDeep } from './mask.js';
 import { realM2m } from './realEngine.js';
+import { createPending, realThreeLoComplete, realThreeLoStart } from './realThreeLo.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB_DIST = process.env.WEB_DIST || path.resolve(HERE, '../../web/dist');
 const CONFIG = process.env.CUSTOMER_CONFIG || path.resolve(HERE, '../../customer.config.json');
 
 export function createApp({ health = createHealth(), configFile = CONFIG, workspaces = createWorkspaces(), mode = createMode() } = {}) {
+  const realThreeLo = { result: null, lastError: null };
   const app = express();
   app.disable('x-powered-by');
   app.use(hostCheck);
@@ -107,6 +109,39 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   // to the shape the PingOne resource grants (orders:read / orders:write), so this endpoint cannot mint arbitrary
   // tokens. The raw token is returned (rule 4: tokens shown raw, education) - it is real and short-lived.
   const REAL_SCOPES = new Set(['orders:read', 'orders:write']);
+  // Real 3LO: the pre-registration map (gotcha 12/13). sessionUri -> { userId, scope, wat }. The callback can
+  // only be reached by AgentCore's redirect, so the map never leaks user ids to the browser.
+  const threeLoPending = createPending();
+  api.post('/real/3lo/start', withWorkspace((ws, req, res) => {
+    if (mode.info().realAvailable !== true) return res.status(409).json({ error: 'conflict', message: mode.info().realReason });
+    const b = req.body || {};
+    const scope = typeof b.scope === 'string' ? b.scope : 'orders:read';
+    if (!REAL_SCOPES.has(scope)) return res.status(400).json({ error: 'bad_request', detail: 'scope must be orders:read or orders:write' });
+    realThreeLoStart({ scope, userId: b.userId }).then((out) => {
+      if (out.ok) threeLoPending.set(out.sessionUri, { userId: out.userId, scope: out.scope, wat: out.wat });
+      res.json(out);
+    }).catch((e) => res.status(502).json({ ok: false, error: `real 3LO: ${e.message}` }));
+  }));
+  // AgentCore redirects here with ?session_id=<sessionUri>. The response is a browser-facing page, so it
+  // bypasses the JSON masker (nothing user-shaped is echoed: no sessionUri, no token).
+  // The UI polls this after opening the authorizationUrl.
+  api.get('/real/3lo/result', withWorkspace((ws, _req, res) => {
+    if (realThreeLo.lastError) { const e = realThreeLo.lastError; realThreeLo.lastError = null; return res.json({ ok: false, error: e }); }
+    const r = realThreeLo.result;
+    if (r) realThreeLo.result = null;
+    res.json(r ? { ...r } : { ok: false, pending: true });
+  }));
+  api.get('/real/callback', (req, res) => {
+    const sessionUri = typeof req.query.session_id === 'string' ? req.query.session_id : '';
+    if (!sessionUri || sessionUri.length > 512) return res.status(400).type('text').send('Bad callback: missing session');
+    realThreeLoComplete({ sessionUri }, threeLoPending).then((out) => {
+      if (!out.ok) { realThreeLo.lastError = out.error; return res.status(502).type('text').send('Real 3LO failed: see the lab UI for the reason.'); }
+      realThreeLo.result = out;
+      workspaces.record('default', { scenario: `real-3lo:${out.scope}`, decision: 'real' });
+      res.type('html').send('<!doctype html><title>Real 3LO complete</title><body style="font-family:system-ui;max-width:40rem;margin:4rem auto"><h1>Sign-in complete</h1><p>The real PingOne token for this human is in the lab. Go back to the lab tab - the Real tab shows the decoded claims.</p></body>');
+    })
+      .catch((e) => { realThreeLo.lastError = e.message; res.status(502).type('text').send('Real 3LO failed.'); });
+  });
   api.post('/real/m2m', withWorkspace((ws, req, res) => {
     if (mode.info().realAvailable !== true) return res.status(409).json({ error: 'conflict', message: mode.info().realReason });
     const scope = req.body && typeof req.body.scope === 'string' ? req.body.scope : 'orders:read';

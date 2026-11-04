@@ -1,9 +1,78 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { getJson } from "../api";
 
 // The Real tab: one live M2M run through AWS AgentCore Identity -> PingOne, shown the same way the Mock
 // gate shows tokens: raw values, decoded claims, every check visible. The button 409s with the owner
 // how-to when Real is not configured - that refusal is data, and this tab shows it as such.
+
+function ThreeLoPanel({ realOn }) {
+  const [state, setState] = useState("idle"); // idle | waiting | done | error
+  const [detail, setDetail] = useState(null);
+  const [userId, setUserId] = useState("demoUser");
+  const pollRef = useRef(null);
+
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
+
+  const start = async () => {
+    setBusy(true);
+    try {
+      const r = await fetch("/api/real/3lo/start", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ scope: "orders:read", userId }),
+      });
+      const j = await r.json();
+      if (j.ok && j.authorizationUrl) {
+        setState("waiting");
+        window.open(j.authorizationUrl, "_blank", "noopener");
+        pollRef.current = setInterval(async () => {
+          const pr = await fetch("/api/real/3lo/result");
+          const pj = await pr.json();
+          if (pj.pending) return;
+          clearInterval(pollRef.current); pollRef.current = null;
+          if (pj.ok) { setDetail(pj); setState("done"); } else { setDetail(pj); setState("error"); }
+        }, 2000);
+      } else {
+        setDetail(j); setState("error");
+      }
+    } catch (e) { setDetail({ error: String(e) }); setState("error"); }
+    finally { setBusy(false); }
+  };
+
+  return (
+    <section aria-label="Real 3LO: a real human login">
+      <h3>Real 3LO: a real human signs in</h3>
+      <p>
+        This is the USER_FEDERATION flow: the server mints a user-bound workload token, AgentCore Identity
+        returns a real PingOne authorization URL, <strong>you</strong> sign in as a real PingOne user, and the
+        token that comes back carries <code>sub</code> = the human - not the agent&apos;s client_id. That
+        difference is the whole lesson.
+      </p>
+      {!realOn && <p className="banner" data-testid="real3lo-off">Real is not configured - see the Mode switch tooltip.</p>}
+      <div className="actions">
+        <label htmlFor="apd-3lo-user" className="muted">PingOne user id: </label>
+        <input id="apd-3lo-user" value={userId} onChange={(e) => setUserId(e.target.value)} size={18} data-testid="real3lo-user" />
+        <button type="button" className="btn" disabled={busy || !realOn || state === "waiting"} onClick={start} data-testid="real3lo-start">
+          {state === "waiting" ? "Waiting for sign-in..." : busy ? "Starting..." : "Start real sign-in"}
+        </button>
+      </div>
+      {state === "waiting" && <p className="banner" data-testid="real3lo-waiting">Complete the PingOne sign-in in the tab that just opened. This page polls until the callback lands.</p>}
+      {state === "done" && detail && (
+        <div data-testid="real3lo-result">
+          <h4>Decoded claims (the real user token)</h4>
+          <ul>
+            {Object.entries(detail.claims || {}).map(([k, v]) => (
+              <li key={k}><code>{k}</code>: <code>{typeof v === "string" ? v : JSON.stringify(v)}</code></li>
+            ))}
+          </ul>
+          <p className="muted">scope <code>{detail.scope}</code> - user <code>{detail.userId}</code>{detail.expiresIn ? <> - expires in {detail.expiresIn}s</> : null}</p>
+        </div>
+      )}
+      {state === "error" && <p className="banner" data-testid="real3lo-error">3LO failed: {detail?.error || "unknown"}</p>}
+    </section>
+  );
+}
+
 export default function RealRun({ info }) {
   const [run, setRun] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -50,6 +119,7 @@ export default function RealRun({ info }) {
           Run live M2M (orders:write)
         </button>
       </div>
+      <ThreeLoPanel realOn={realOn} />
       {run && (
         <div data-testid="real-result">
           {run.status === 409 ? (

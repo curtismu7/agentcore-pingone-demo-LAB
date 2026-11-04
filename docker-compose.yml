@@ -22,6 +22,7 @@ services:
       AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
       APD_REAL_WORKLOAD_NAME: ${APD_REAL_WORKLOAD_NAME:-}
       APD_REAL_PROVIDER_NAME: ${APD_REAL_PROVIDER_NAME:-}
+      APD_REAL_RETURN_URL: ${APD_REAL_RETURN_URL:-}
     read_only: true
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]

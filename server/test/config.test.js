@@ -19,7 +19,7 @@ test('Real is only available when the owner opts in (APD_REAL_ENGINE=1 plus AWS 
   assert.equal(realConfigured({ APD_REAL_ENGINE: '1' }), false, 'the engine flag alone is not enough');
   assert.equal(realConfigured({ APD_REAL_ENGINE: '1', AWS_ACCESS_KEY_ID: 'k', AWS_SECRET_ACCESS_KEY: 's', AWS_REGION: 'us-east-1' }), false, 'creds alone are not enough');
   assert.equal(realConfigured({ APD_REAL_ENGINE: '1', AWS_ACCESS_KEY_ID: 'k', AWS_SECRET_ACCESS_KEY: 's', AWS_REGION: 'us-east-1', APD_REAL_WORKLOAD_NAME: 'w' }), false, 'the provider name is still missing');
-  assert.equal(realConfigured({ APD_REAL_ENGINE: '1', AWS_ACCESS_KEY_ID: 'k', AWS_SECRET_ACCESS_KEY: 's', AWS_REGION: 'us-east-1', APD_REAL_WORKLOAD_NAME: 'w', APD_REAL_PROVIDER_NAME: 'p' }), true);
+  assert.equal(realConfigured({ APD_REAL_ENGINE: '1', AWS_ACCESS_KEY_ID: 'k', AWS_SECRET_ACCESS_KEY: 's', AWS_REGION: 'us-east-1', APD_REAL_WORKLOAD_NAME: 'w', APD_REAL_PROVIDER_NAME: 'p', APD_REAL_RETURN_URL: 'https://x/' }), true);
   assert.equal(createMode({ env: { MODE: 'real' } }).source(), 'mock', 'a bare MODE must not switch this app');
   assert.deepEqual(MODES, ['mock', 'real']);
 });

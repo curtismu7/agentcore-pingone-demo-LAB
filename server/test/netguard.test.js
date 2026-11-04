@@ -113,7 +113,7 @@ test('UDP connect to loopback still works under the guard, and a connected send 
 });
 
 test('Real mode opens only the AgentCore Identity host for the configured region - never a wildcard', async () => {
-  const env = { APD_REAL_ENGINE: '1', AWS_ACCESS_KEY_ID: 'k', AWS_SECRET_ACCESS_KEY: 's', AWS_REGION: 'us-east-1', APD_REAL_WORKLOAD_NAME: 'w', APD_REAL_PROVIDER_NAME: 'p' };
+  const env = { APD_REAL_ENGINE: '1', AWS_ACCESS_KEY_ID: 'k', AWS_SECRET_ACCESS_KEY: 's', AWS_REGION: 'us-east-1', APD_REAL_WORKLOAD_NAME: 'w', APD_REAL_PROVIDER_NAME: 'p', APD_REAL_RETURN_URL: 'https://x/' };
   installNetguard(env);
   try {
     // the one allowed host resolves and fetches (nothing is listening, but the guard does not refuse)
