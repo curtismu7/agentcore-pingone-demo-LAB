@@ -1,0 +1,275 @@
+{
+  "schema": "demo-content-pack/1",
+  "id": "agentcore-pingone-demo",
+  "title": "AgentCore PingOne LAB",
+  "version": "0.1.0",
+  "demo": {
+    "id": "agentcore-pingone-demo",
+    "name": "AgentCore PingOne LAB",
+    "catalog": "D99",
+    "baseUrl": "http://localhost:7601",
+    "doctor": "/api/health",
+    "tags": [
+      "mcp",
+      "agent",
+      "claims",
+      "privilege",
+      "mock-only",
+      "token-exchange",
+      "agentcore"
+    ]
+  },
+  "glossary": [
+    {
+      "id": "act-claim",
+      "term": "act claim (actor)",
+      "definition": "A token claim naming the party acting on behalf of the subject (RFC 8693). In this lab it must be an OBJECT with a sub, such as {\"sub\": \"orders-agent\"}. The text \"{}\" is not an object and act.sub then does not exist.",
+      "aliases": [
+        "act.sub",
+        "RFC 8693"
+      ]
+    },
+    {
+      "id": "required-claims",
+      "term": "RequiredClaims",
+      "definition": "A mock Privilege policy rule shape: a list of claim paths and the values they must equal. All must match or the call is denied.",
+      "aliases": [
+        "required claims"
+      ]
+    },
+    {
+      "id": "token-exchange",
+      "term": "Token exchange (on-behalf-of)",
+      "definition": "Ping release claim, UNVERIFIED on our tenant: the gateway swaps the caller's verified token (RFC 8693) for one minted for the downstream MCP server, so the backend validates a token issued to it instead of trusting a shared service account. In this lab it is the lab's own model, with a keyed-hash stand-in for a signature.",
+      "aliases": [
+        "RFC 8693",
+        "OBO",
+        "on-behalf-of"
+      ]
+    },
+    {
+      "id": "act-chain",
+      "term": "act claim chain",
+      "definition": "Ping release claim, UNVERIFIED on our tenant: the act claim preserves who the original caller was. When the caller token already carried an act, the lab nests it beneath the new one (one level per hop, capped at three actors: a lab-invented cap).",
+      "aliases": [
+        "delegation chain"
+      ]
+    },
+    {
+      "id": "user-federation",
+      "term": "USER_FEDERATION (3LO)",
+      "definition": "AgentCore Identity starts a real human login through PingOne: pi.flow sign-in, a code to the callback, an exchange, and a token whose sub is the human. The four shapes that decide it: the two callback URLs match exactly, the session is pre-registered by sessionUri, the token endpoint takes POST auth, and the runtime role holds GetResourceOauth2Token on the workload identity directory.",
+      "aliases": [
+        "3LO",
+        "authorization code",
+        "workload identity"
+      ]
+    },
+    {
+      "id": "flattened-claims",
+      "term": "Flattened claims",
+      "definition": "A token turned into dotted paths such as act.sub, so a rule can address a nested claim. That nested matching is new in gateway v1.261024 is an INFERENCE from binary symbols: UNVERIFIED.",
+      "aliases": [
+        "dotted path",
+        "FlatClaims"
+      ]
+    }
+  ],
+  "sources": [
+    {
+      "id": "rfc8693",
+      "title": "RFC 8693: OAuth 2.0 Token Exchange",
+      "url": "https://www.rfc-editor.org/rfc/rfc8693",
+      "kind": "standard",
+      "use": "Defines the act (actor) claim.",
+      "status": "not-read",
+      "checked": "2026-10-27"
+    }
+  ],
+  "cards": [
+    {
+      "id": "try-allowed",
+      "label": "Scenario 1: Allowed: act.sub matches",
+      "description": "client_id and act.sub both equal the registered agent, so the rule passes.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#scenario-allowed"
+      },
+      "terms": [
+        "required-claims",
+        "flattened-claims"
+      ],
+      "story": "S01"
+    },
+    {
+      "id": "try-wrong-act-sub",
+      "label": "Scenario 2: Denied: act.sub is a different agent",
+      "description": "The token is valid and signed, but it acts for another agent. The nested claim decides, not the signature.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#scenario-wrong-act-sub"
+      },
+      "terms": [
+        "act-claim"
+      ],
+      "story": "S02"
+    },
+    {
+      "id": "try-no-act",
+      "label": "Scenario 3: Denied: no act claim at all",
+      "description": "Without act there is no act.sub to match. A token that proves only a client is not enough for this rule.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#scenario-no-act"
+      },
+      "terms": [
+        "act-claim"
+      ],
+      "story": "S03"
+    },
+    {
+      "id": "try-act-text",
+      "label": "Scenario 4: Denied: act emitted as the text \"{}\"",
+      "description": "The real trap: the token mapping produced the text \"{}\" instead of an object, so act.sub does not exist. Fix the mapping expression, not the rule.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#scenario-act-text"
+      },
+      "terms": [
+        "act-claim",
+        "flattened-claims"
+      ],
+      "story": "S04"
+    },
+    {
+      "id": "try-wrong-client",
+      "label": "Scenario 5: Denied: wrong client_id",
+      "description": "act.sub is right but client_id names another client. Both required claims must match.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#scenario-wrong-client"
+      },
+      "terms": [
+        "required-claims"
+      ],
+      "story": "S05"
+    },
+    {
+      "id": "concept-obo",
+      "label": "On-behalf-of (RFC 8693): the backend gets its own token",
+      "description": "Ping release claim, UNVERIFIED on our tenant. Thirteen scenarios: the exchanged token (aud is the backend, act names the caller), a chain, and every check that refuses. Each row says whether it is a deck claim, a swagger name, a lab reading or lab-invented.",
+      "group": "concept",
+      "action": {
+        "type": "route",
+        "href": "/#obo"
+      },
+      "terms": [
+        "token-exchange",
+        "act-chain"
+      ]
+    },
+    {
+      "id": "why-obo",
+      "label": "Why it matters: on-behalf-of (Ping claims, slide 48)",
+      "description": "Per Ping's deck (slide 48), UNVERIFIED on our tenant. Challenge: A tool name and arguments cannot say what was asked for, whether the agent was ever meant to do it, or whether it normally behaves this way. Policy built on the request alone cannot tell misuse from an agent doing its job. Technical value: Three separable signals: deterministic intent patterns and purpose declarations refuse hard; learned behaviour baselines drive alerts and approval. On-behalf-of gives the backend a token issued to it, with the original caller named in act. Business value: The enforceable declaration \"this agent exists to reconcile invoices\" unblocks unattended agents in processes that could not otherwise approve them.",
+      "group": "concept",
+      "action": {
+        "type": "route",
+        "href": "/#obo"
+      },
+      "terms": [
+        "token-exchange"
+      ]
+    },
+    {
+      "id": "concept-three-lo",
+      "label": "USER_FEDERATION (3LO): the agent logs a human in through PingOne",
+      "description": "The agent on AgentCore Runtime starts a real PingOne login: pi.flow sign-in, a code to the callback, an exchange, and a token whose sub is the human. Seven scenarios: each breaks one of the four shapes, and the page shows which step decided.",
+      "group": "try-it",
+      "action": {
+        "type": "route",
+        "href": "/#three-lo"
+      },
+      "terms": [
+        "user-federation"
+      ]
+    },
+    {
+      "id": "ref-doctor",
+      "label": "Doctor and health",
+      "description": "Preflight checks and the demo-health/1 endpoint.",
+      "group": "setup",
+      "action": {
+        "type": "route",
+        "href": "/api/health"
+      }
+    }
+  ],
+  "stories": [
+    {
+      "id": "S01",
+      "title": "Allowed: act.sub matches",
+      "say": "client_id and act.sub both equal the registered agent, so the rule passes."
+    },
+    {
+      "id": "S02",
+      "title": "Denied: act.sub is a different agent",
+      "say": "The token is valid and signed, but it acts for another agent. The nested claim decides, not the signature."
+    },
+    {
+      "id": "S03",
+      "title": "Denied: no act claim at all",
+      "say": "Without act there is no act.sub to match. A token that proves only a client is not enough for this rule."
+    },
+    {
+      "id": "S04",
+      "title": "Denied: act emitted as the text \"{}\"",
+      "say": "The real trap: the token mapping produced the text \"{}\" instead of an object, so act.sub does not exist. Fix the mapping expression, not the rule."
+    },
+    {
+      "id": "S05",
+      "title": "Denied: wrong client_id",
+      "say": "act.sub is right but client_id names another client. Both required claims must match."
+    },
+    {
+      "id": "S06",
+      "title": "Allowed: the human signs in and the token carries their sub",
+      "say": "Every step lines up: the callback URL matches, the session is pre-registered by sessionUri, PingOne accepts POST auth, and the returned token's sub is the human who signed in."
+    },
+    {
+      "id": "S07",
+      "title": "Denied: the callback URL does not match the PingOne app",
+      "say": "Two callback URLs exist: the PingOne app's redirect URI and the credential provider's callbackUrl. They must match EXACTLY (scheme, host, port, path). One extra trailing slash is a mismatch, and the flow dies before a code exists."
+    },
+    {
+      "id": "S08",
+      "title": "Denied: the session was never pre-registered",
+      "say": "The callback lookup is keyed on the sessionUri, not on the runtime session id. A session id that was registered under its id instead of its sessionUri is never found."
+    },
+    {
+      "id": "S09",
+      "title": "Denied: the vendor sent client_secret_basic, PingOne wants POST",
+      "say": "The PingOneOauth2 vendor may silently fall back to HTTP Basic auth at the token endpoint. A PingOne worker app that requires POST answers 401 invalid_client, which looks like a bad secret but is an auth-method mismatch."
+    },
+    {
+      "id": "S10",
+      "title": "Denied: the runtime role cannot read the token",
+      "say": "GetResourceOauth2Token needs the workload-identity-directory ARN in the runtime role's policy. Without it AgentCore answers AccessDeniedException before the flow even starts: the human is never asked to sign in."
+    },
+    {
+      "id": "S11",
+      "title": "Denied: the authorization code expired",
+      "say": "A code lives for about a minute (the lab uses sixty seconds). If the exchange runs after that, PingOne answers invalid_grant and the whole sign-in has to happen again."
+    },
+    {
+      "id": "S12",
+      "title": "Allowed but anonymous: the token names no human",
+      "say": "A pre-registration done once at deploy time (not per invocation) gives every caller the same token as the demo user, not the caller. Registering per invocation is what makes sub the actual human."
+    }
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "name": "agentcore-pingone-demo-LAB",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "What the Privilege gateway versions added (v1.261024 to v1.261030), in mock only: a nested-claim gate, scope gates, AgentCore governance, on-behalf-of, an AgentCore console, and the readings of v1.261029 and v1.261030. Ping release claims are UNVERIFIED on our tenant. No tenant, no outbound network.",
+  "license": "MIT",
+  "workspaces": [
+    "server",
+    "web"
+  ],
+  "engines": {
+    "node": ">=26"
+  },
+  "scripts": {
+    "start": "npm start -w server",
+    "build": "npm run build -w web",
+    "test": "npm test -w server && npm test -w web && node --test scripts/*.test.mjs",
+    "doctor": "node scripts/doctor.mjs",
+    "reset": "node scripts/reset.mjs",
+    "prepare": "git config core.hooksPath .githooks || true",
+    "talk-track": "node scripts/build-talk-track.mjs",
+    "mock-table": "node scripts/build-mock-table.mjs",
+    "content-pack": "node scripts/build-content-pack.mjs && node scripts/validate-content-pack.mjs"
+  },
+  "devDependencies": {
+    "ajv": "^8.20.0"
+  }
+}

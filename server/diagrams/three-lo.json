@@ -1,0 +1,39 @@
+{
+  "schema": "diagram-studio/1",
+  "id": "three-lo",
+  "title": "USER_FEDERATION: the agent logs a human in through PingOne",
+  "lede": "The agent on AgentCore Runtime starts a real human login (3LO): pi.flow sign-in, a code to the callback, an exchange, and a token whose sub is the human. Four shapes decide whether it works. Mock only.",
+  "groups": {
+    "actor": { "label": "Actors", "color": "dark" },
+    "aws": { "label": "AWS (mock)", "color": "amber" },
+    "idp": { "label": "Identity provider (mock)", "color": "blue" },
+    "resource": { "label": "Resources", "color": "grey" }
+  },
+  "nodes": [
+    { "id": "human", "label": "Human (signs in)", "group": "actor", "x": 0, "y": 0 },
+    { "id": "agent", "label": "Agent (AgentCore Runtime)", "group": "aws", "x": 300, "y": 60 },
+    { "id": "identity", "label": "AgentCore Identity (mock)", "group": "aws", "x": 0, "y": 200 },
+    { "id": "pingone", "label": "PingOne (mock, pi.flow)", "group": "idp", "x": 300, "y": 340 },
+    { "id": "callback", "label": "Callback (sessionUri pre-registered)", "group": "aws", "x": 0, "y": 480 },
+    { "id": "api", "label": "Downstream API", "group": "resource", "x": 300, "y": 620 }
+  ],
+  "edges": [
+    { "source": "agent", "target": "identity", "label": "GetResourceOauth2Token (USER_FEDERATION)", "color": "blue" },
+    { "source": "identity", "target": "pingone", "label": "authorization request", "color": "blue" },
+    { "source": "pingone", "target": "human", "label": "pi.flow sign-in", "color": "blue" },
+    { "source": "pingone", "target": "callback", "label": "code (redirect_uri must match exactly)", "color": "blue" },
+    { "source": "callback", "target": "identity", "label": "lookup by sessionUri", "color": "blue" },
+    { "source": "identity", "target": "pingone", "label": "code exchange (POST auth)", "color": "blue" },
+    { "source": "identity", "target": "agent", "label": "accessToken, sub = human", "dashed": true, "color": "green" },
+    { "source": "agent", "target": "api", "label": "Bearer token (the human, not the agent)", "color": "green" }
+  ],
+  "steps": [
+    { "title": "Agent asks for a user token", "what": "GetResourceOauth2Token needs the workload-identity-directory ARN in the runtime role's policy, or AccessDeniedException ends it before any sign-in.", "edges": [0] },
+    { "title": "Authorization starts", "what": "AgentCore Identity sends the human to PingOne with the credential provider's callbackUrl.", "edges": [1] },
+    { "title": "The human signs in", "what": "pi.flow renders the form in an iframe: no redirect login fallback.", "edges": [2] },
+    { "title": "PingOne redirects with a code", "what": "The redirect_uri must match the PingOne app's registration EXACTLY. The session lookup is keyed on the sessionUri, not the runtime session id.", "edges": [3, 4] },
+    { "title": "The code is exchanged", "what": "The vendor authenticates with POST (PingOne's requirement); Basic gets 401 invalid_client.", "edges": [5] },
+    { "title": "The token reaches the agent", "what": "The token's sub is the human who signed in: registration per invocation, not once at deploy time.", "edges": [6] },
+    { "title": "The API sees the human", "what": "Downstream, the token names the human. The on-behalf-of tab shows what delegation adds.", "edges": [7] }
+  ]
+}

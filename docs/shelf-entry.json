@@ -1,0 +1,16 @@
+{
+  "demos": [
+    {
+      "id": "agentcore-pingone-demo-LAB",
+      "name": "AgentCore PingOne LAB",
+      "kind": "Demo",
+      "description": "An AI agent on AWS Bedrock AgentCore Runtime whose identity comes from PingOne, in mock only: the M2M flow (the agent's own token), the USER_FEDERATION 3LO flow (a human login through the agent, four measured shapes), and on-behalf-of delegation. Mock/Real toggle; Real ships disabled.",
+      "url": "http://localhost:7601",
+      "healthPath": "/api/health",
+      "composeFile": "agentcore-pingone-demo-LAB/docker-compose.yml",
+      "composeOverlays": [],
+      "catalogId": "D99",
+      "notes": "Docker: HOST_PORT=7601 docker compose up --build -d (published on 127.0.0.1 only). Mock engine only: no tenant, no credentials, netguard blocks all outbound; Real mode is offered but 409s with a how-to until the owner wires a live engine. Catalog id D99 is a PLACEHOLDER (the owner to confirm). The M2M shape and the four 3LO shapes are measured on the owner's verified build; the step order and codes are the lab's own model."
+    }
+  ]
+}

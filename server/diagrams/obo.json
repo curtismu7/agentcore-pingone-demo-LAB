@@ -1,0 +1,124 @@
+{
+ "schema": "diagram-studio/1",
+ "id": "obo",
+ "title": "On-behalf-of: the agent's token is exchanged for one the backend can trust",
+ "lede": "Ping release claim, UNVERIFIED on our tenant. In the 3LO flow the human's token reaches the agent; a downstream RFC 8693 exchange mints one whose audience is the backend, with the human in sub and the agent in act.sub. Mock only; values invented.",
+ "groups": {
+  "actor": {
+   "label": "Actors",
+   "color": "dark"
+  },
+  "idp": {
+   "label": "Issuer (mock)",
+   "color": "blue"
+  },
+  "gateway": {
+   "label": "Gateway",
+   "color": "red"
+  },
+  "resource": {
+   "label": "Resources",
+   "color": "grey"
+  }
+ },
+ "nodes": [
+  {
+   "id": "agent",
+   "label": "Agent",
+   "group": "actor",
+   "x": 0,
+   "y": 0
+  },
+  {
+   "id": "gateway",
+   "label": "Exchange client (mock)",
+   "group": "gateway",
+   "x": 300,
+   "y": 170
+  },
+  {
+   "id": "issuer",
+   "label": "PingOne (mock)",
+   "group": "idp",
+   "x": 0,
+   "y": 340
+  },
+  {
+   "id": "backend",
+   "label": "Backend MCP server",
+   "group": "resource",
+   "x": 300,
+   "y": 510
+  }
+ ],
+ "edges": [
+  {
+   "source": "agent",
+   "target": "gateway",
+   "label": "Bearer caller token",
+   "color": "green"
+  },
+  {
+   "source": "gateway",
+   "target": "issuer",
+   "label": "RFC 8693 exchange: resource + scope",
+   "color": "blue"
+  },
+  {
+   "source": "issuer",
+   "target": "gateway",
+   "label": "token for the backend, with act",
+   "dashed": true,
+   "color": "green"
+  },
+  {
+   "source": "gateway",
+   "target": "backend",
+   "label": "exchanged token",
+   "color": "blue"
+  },
+  {
+   "source": "backend",
+   "target": "gateway",
+   "label": "validates aud, reads act",
+   "dashed": true
+  }
+ ],
+ "steps": [
+  {
+   "title": "Agent calls the gateway",
+   "what": "The agent presents the token it was issued. The gateway verifies it: signature, issuer, expiry, audience, a named user.",
+   "edges": [
+    0
+   ]
+  },
+  {
+   "title": "Gateway asks to exchange it",
+   "what": "The gateway sends the caller token to the issuer as the subject token, with the backend as the resource and a scope no wider than the caller holds.",
+   "edges": [
+    1
+   ]
+  },
+  {
+   "title": "A token minted for the backend",
+   "what": "The issuer answers with a new token. Its aud is the backend, its sub is still the user, and act names the caller (an earlier act nests beneath it).",
+   "edges": [
+    2
+   ]
+  },
+  {
+   "title": "Gateway calls the backend",
+   "what": "Only the exchanged token is forwarded. The caller's own token never reaches the backend.",
+   "edges": [
+    3
+   ]
+  },
+  {
+   "title": "Backend validates a token issued to it",
+   "what": "The audience is the backend, so it accepts; it logs the user and the acting agent instead of a shared service account.",
+   "edges": [
+    4
+   ]
+  }
+ ]
+}

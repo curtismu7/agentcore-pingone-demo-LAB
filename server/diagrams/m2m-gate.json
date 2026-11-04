@@ -1,0 +1,35 @@
+{
+  "schema": "diagram-studio/1",
+  "id": "m2m-gate",
+  "title": "M2M gate: AgentCore Runtime gets its own PingOne token",
+  "lede": "The agent on AgentCore Runtime asks AgentCore Identity for a PingOne token (M2M, client_credentials): no human, no browser. The downstream rule checks client_id and act.sub before the API is called. Mock only.",
+  "groups": {
+    "actor": { "label": "Actors", "color": "dark" },
+    "aws": { "label": "AWS (mock)", "color": "amber" },
+    "idp": { "label": "Identity provider (mock)", "color": "blue" },
+    "resource": { "label": "Resources", "color": "grey" }
+  },
+  "nodes": [
+    { "id": "agent", "label": "Agent (AgentCore Runtime)", "group": "aws", "x": 300, "y": 0 },
+    { "id": "identity", "label": "AgentCore Identity (mock)", "group": "aws", "x": 0, "y": 120 },
+    { "id": "pingone", "label": "PingOne worker app (mock)", "group": "idp", "x": 300, "y": 260 },
+    { "id": "api", "label": "Downstream API", "group": "resource", "x": 0, "y": 420 },
+    { "id": "rule", "label": "Rule: required claims", "group": "resource", "x": 300, "y": 560 }
+  ],
+  "edges": [
+    { "source": "agent", "target": "identity", "label": "GetResourceOauth2Token (M2M)", "color": "blue" },
+    { "source": "identity", "target": "pingone", "label": "client_credentials", "color": "blue" },
+    { "source": "pingone", "target": "agent", "label": "accessToken with act.sub", "dashed": true, "color": "green" },
+    { "source": "agent", "target": "api", "label": "Bearer token", "color": "green" },
+    { "source": "api", "target": "rule", "label": "flatten claims", "color": "blue" },
+    { "source": "rule", "target": "api", "label": "allow / deny", "dashed": true, "color": "blue" }
+  ],
+  "steps": [
+    { "title": "Agent asks for a token", "what": "The agent calls AgentCore Identity with oauth2_flow=M2M: no callback URL, no polling, no pre-registration.", "edges": [0] },
+    { "title": "AgentCore authenticates to PingOne", "what": "The credential provider's worker app uses client_credentials. token_endpoint_auth_method must be POST: Basic gets 401 invalid_client.", "edges": [1] },
+    { "title": "Token carries act.sub", "what": "The mapping puts the agent id in act as an OBJECT, {\"sub\": \"{{castAgentId}}\"}. The text \"{}\" would break the gate.", "edges": [2] },
+    { "title": "Agent calls the API", "what": "The agent presents the token to the downstream API.", "edges": [3] },
+    { "title": "Claims are flattened", "what": "The token becomes dotted paths such as act.sub and client_id.", "edges": [4] },
+    { "title": "Rule decides", "what": "Required claims client_id and act.sub must equal the registered agent. Anything else is denied.", "edges": [5] }
+  ]
+}

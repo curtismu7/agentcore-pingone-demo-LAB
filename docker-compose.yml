@@ -1,0 +1,25 @@
+# OrbStack:  HOST_PORT=7601 docker compose up --build -d   ->  http://127.0.0.1:7601
+# The server binds 0.0.0.0 INSIDE the container (APD_BIND is the opt-in), but the port is published on loopback only.
+# Do not change the 127.0.0.1 below. HOST_PORT must stay in 7601-7649.
+name: agentcore-pingone-demo-lab
+
+services:
+  agentcore-pingone-demo-lab:
+    build: .
+    ports:
+      - "127.0.0.1:${HOST_PORT:-7601}:7601"
+    environment:
+      PORT: "7601"
+      APD_BIND: 0.0.0.0
+      APD_MODE: mock
+      LAB_ALLOWED_HOSTS: ${LAB_ALLOWED_HOSTS:-}
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:7601/api/health').then(r=>r.json()).then(j=>process.exit(j.schema==='demo-health/1'&&j.state==='ready'?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      start_period: 5s
+      start_interval: 2s
+      timeout: 5s
+      retries: 3
