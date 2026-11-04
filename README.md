@@ -47,7 +47,7 @@ npm run content-pack # regenerate + validate content-pack.json
 Docker (OrbStack; publishes `127.0.0.1` only):
 
 ```bash
-HOST_PORT=7601 docker compose up --build -d
+HOST_PORT=7601 docker compose --env-file ~/Development/.env up --build -d  (all settings, including the Real-mode ones, come from the shared ~/Development/.env; this repo has no .env)
 ```
 
 Reached through the shared lab proxy: https://local.ping-devops.com:8443/agentcore-pingone/ (the cookie routes the SPA to this lab; the loopback URL above always works).

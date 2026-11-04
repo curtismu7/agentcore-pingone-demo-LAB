@@ -1,4 +1,5 @@
-# OrbStack:  HOST_PORT=7601 docker compose up --build -d   ->  http://127.0.0.1:7601
+# OrbStack:  HOST_PORT=7601 docker compose --env-file ~/Development/.env up --build -d   ->  http://127.0.0.1:7601
+# Real-mode settings (APD_REAL_*, AWS_*) are interpolated from the SHARED settings file (~/Development/.env, the owner rule: no per-app .env).
 # The server binds 0.0.0.0 INSIDE the container (APD_BIND is the opt-in), but the port is published on loopback only.
 # Do not change the 127.0.0.1 below. HOST_PORT must stay in 7601-7649.
 name: agentcore-pingone-demo-lab
