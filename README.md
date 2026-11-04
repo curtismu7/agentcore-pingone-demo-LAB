@@ -50,7 +50,7 @@ Docker (OrbStack; publishes `127.0.0.1` only):
 HOST_PORT=7601 docker compose up --build -d
 ```
 
-Reached through the shared lab proxy: https://local.ping-devops.com:8443/agentcore-pingone-demo/ (when the proxy and the lab cookie are set up; the loopback URL above always works).
+Reached through the shared lab proxy: https://local.ping-devops.com:8443/agentcore-pingone/ (the cookie routes the SPA to this lab; the loopback URL above always works).
 
 ## Layout
 
