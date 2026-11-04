@@ -1,14 +1,26 @@
 // Runtime netguard: zero real outbound. Every non-loopback socket, DNS lookup, fetch and UDP send is refused and recorded.
 // The mock authorization server is in-process, so nothing in this app has a reason to leave the machine.
+// Real-mode opt-out: when the owner configured the Real engine (realEngineConfigured), the allowlist below opens
+// ONLY the AgentCore Identity endpoint for this region - still no wildcard. Mock mode keeps the hard zero-outbound.
 import dns from 'node:dns';
 import net from 'node:net';
 import dgram from 'node:dgram';
 import { isLoopbackHost } from './safety.js';
+import { loadSharedEnv } from './env.js';
+import { realEngineConfigured } from './realEngine.js';
+
+function realAllowHosts(env = process.env) {
+  if (!realEngineConfigured(env, loadSharedEnv())) return [];
+  const region = env.AWS_REGION || loadSharedEnv().AWS_REGION || 'us-east-1';
+  return [`bedrock-agentcore.${region}.amazonaws.com`];
+}
 
 let active = null;
 
-export function installNetguard() {
+export function installNetguard(env = process.env) {
   if (active) return active;
+  const ALLOW = realAllowHosts(env);
+  const allowedReal = (h) => ALLOW.includes(h);
   const attempts = [];
   const real = {
     connect: net.Socket.prototype.connect, udpConnect: dgram.Socket.prototype.connect, lookup: dns.lookup, fetch: globalThis.fetch, send: dgram.Socket.prototype.send,
@@ -44,13 +56,13 @@ export function installNetguard() {
   };
   net.Socket.prototype.connect = function guardedConnect(...args) {
     const host = hostOf(args);
-    if (!isLoopbackHost(host)) { attempts.push(`socket:${host}`); throw new Error(`network blocked: ${host}`); }
+    if (!isLoopbackHost(host) && !allowedReal(host)) { attempts.push(`socket:${host}`); throw new Error(`network blocked: ${host}`); }
     return real.connect.apply(this, args);
   };
   dns.lookup = function guardedLookup(host, ...rest) {
     // listen() resolves its bind address through lookup. A wildcard bind (the container's APD_BIND=0.0.0.0) is not outbound,
     // and connecting to it is still refused by the socket guard above, so only the lookup is allowed.
-    if (!isLoopbackHost(host) && host !== '0.0.0.0' && host !== '::') {
+    if (!isLoopbackHost(host) && !allowedReal(host) && host !== '0.0.0.0' && host !== '::') {
       attempts.push(`dns:${host}`);
       const cb = rest.find((r) => typeof r === 'function');
       return cb?.(new Error(`network blocked: ${host}`));
@@ -58,12 +70,12 @@ export function installNetguard() {
     return real.lookup.call(dns, host, ...rest);
   };
   dns.promises.lookup = async function guardedPromiseLookup(host, ...rest) {
-    if (!isLoopbackHost(host) && host !== '0.0.0.0' && host !== '::') { attempts.push(`dns:${host}`); throw new Error(`network blocked: ${host}`); }
+    if (!isLoopbackHost(host) && !allowedReal(host) && host !== '0.0.0.0' && host !== '::') { attempts.push(`dns:${host}`); throw new Error(`network blocked: ${host}`); }
     return real.plookup.call(dns.promises, host, ...rest);
   };
   globalThis.fetch = async function guardedFetch(input, init) {
     const url = new URL(typeof input === 'string' || input instanceof URL ? input : input.url);
-    if (!isLoopbackHost(url.hostname)) { attempts.push(`fetch:${url.hostname}`); throw new Error(`network blocked: ${url.hostname}`); }
+    if (!isLoopbackHost(url.hostname) && !allowedReal(url.hostname)) { attempts.push(`fetch:${url.hostname}`); throw new Error(`network blocked: ${url.hostname}`); }
     return real.fetch(input, init);
   };
   // connect(port [, address] [, cb]) fixes the peer; a later send() with no address goes there, so the peer is checked here.

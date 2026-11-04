@@ -14,6 +14,14 @@ services:
       APD_BIND: 0.0.0.0
       APD_MODE: mock
       LAB_ALLOWED_HOSTS: ${LAB_ALLOWED_HOSTS:-agentcore-pingone.local.ping-devops.com}
+      # Real engine (owner-set in .env, never committed): APD_REAL_ENGINE=1, AWS creds, APD_REAL_WORKLOAD_NAME, APD_REAL_PROVIDER_NAME
+      APD_REAL_ENGINE: ${APD_REAL_ENGINE:-0}
+      AWS_REGION: ${AWS_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_SESSION_TOKEN: ${AWS_SESSION_TOKEN:-}
+      APD_REAL_WORKLOAD_NAME: ${APD_REAL_WORKLOAD_NAME:-}
+      APD_REAL_PROVIDER_NAME: ${APD_REAL_PROVIDER_NAME:-}
     read_only: true
     cap_drop: [ALL]
     security_opt: ["no-new-privileges:true"]

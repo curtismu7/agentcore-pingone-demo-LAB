@@ -19,6 +19,7 @@ import { buildHops, newTrace } from './trace.js';
 import { createWorkspaces, workspaceFrom } from './workspaces.js';
 import { createReleaseRouter } from './releaseRoutes.js';
 import { maskDeep, maskTypedDeep } from './mask.js';
+import { realM2m } from './realEngine.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB_DIST = process.env.WEB_DIST || path.resolve(HERE, '../../web/dist');
@@ -44,13 +45,13 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   api.get('/three-lo', (req, res) => { res.set('Cache-Control', 'no-store'); res.json({ ...buildThreeLoStory(castFor(req)), tokenLabel: 'MOCK values: invented for education, never a real credential', simulated: true }); });
   // Rule 19: what this build is, and the Mock/Real switch: GET /api/info returns source and realAvailable;
   // POST /api/mode with exactly {"source"} switches at runtime; Real unconfigured -> 409 with the how-to.
-  api.get('/info', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json({ ...mode.info(), liveRefusal: NO_LIVE, simulated: true }); });
+  api.get('/info', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json({ ...mode.info(), liveRefusal: NO_LIVE, simulated: mode.source() !== 'real' }); });
   api.post('/mode', (req, res) => {
     const b = req.body;
     if (!b || typeof b !== 'object' || Array.isArray(b) || Object.keys(b).length !== 1 || !MODES.includes(b.source)) return res.status(400).json({ error: 'bad_request', detail: 'body must be exactly {"source": "mock" or "real"}' });
     if (b.source === 'real' && mode.info().realAvailable !== true) return res.status(409).json({ error: 'conflict', message: mode.info().realReason });
     mode.set(b.source);
-    return res.json({ ...mode.info(), simulated: true });
+    return res.json({ ...mode.info(), simulated: b.source !== 'real' });
   });
 
   const withWorkspace = (handler) => (req, res) => {
@@ -101,6 +102,20 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   }));
   // The H2 2026 release tab (on-behalf-of): see releaseRoutes.js.
   api.use(createReleaseRouter({ castOf: (vertical) => loadCast(configFile, vertical), workspaces }));
+  // Real engine: one live M2M run through AWS AgentCore Identity -> PingOne. Available only when the owner set
+  // APD_REAL_ENGINE=1 and the AWS + workload settings; the route 409s with the how-to otherwise. Scope is bounded
+  // to the shape the PingOne resource grants (orders:read / orders:write), so this endpoint cannot mint arbitrary
+  // tokens. The raw token is returned (rule 4: tokens shown raw, education) - it is real and short-lived.
+  const REAL_SCOPES = new Set(['orders:read', 'orders:write']);
+  api.post('/real/m2m', withWorkspace((ws, req, res) => {
+    if (mode.info().realAvailable !== true) return res.status(409).json({ error: 'conflict', message: mode.info().realReason });
+    const scope = req.body && typeof req.body.scope === 'string' ? req.body.scope : 'orders:read';
+    if (!REAL_SCOPES.has(scope)) return res.status(400).json({ error: 'bad_request', detail: 'scope must be orders:read or orders:write' });
+    realM2m({ scope }).then((out) => {
+      if (out.ok) workspaces.record(ws, { scenario: `real-m2m:${scope}`, decision: 'real' });
+      res.json(out);
+    }).catch((e) => res.status(502).json({ ok: false, error: `real engine: ${e.message}` }));
+  }));
   api.get('/runs', withWorkspace((ws, _req, res) => res.json(workspaces.runs(ws))));
   // Reset clears this workspace's evaluations only.
   api.post('/reset', withWorkspace((ws, _req, res) => { workspaces.reset(ws); res.json({ reset: 'ok', workspace: ws }); }));

@@ -5,6 +5,7 @@ import OnBehalfOf from "./components/OnBehalfOf";
 import ErrorBoundary from "./components/ErrorBoundary";
 import DiagramTab from "./components/DiagramTab";
 import TalkTrack from "./components/TalkTrack";
+import RealRun from "./components/RealRun";
 import ModeToggle from "./components/ModeToggle";
 import { getJson, resetWorkspace, requestModeSwitch } from "./api";
 import { NO_LIVE, RELEASE_BANNER } from "./releaseText";
@@ -13,6 +14,7 @@ export const TABS = [
   { id: "gate", label: "M2M gate" },
   { id: "three-lo", label: "USER_FEDERATION (3LO)" },
   { id: "obo", label: "On-behalf-of" },
+  { id: "real", label: "Real" },
   { id: "diagram", label: "Diagram" },
   { id: "talk", label: "Talk track" },
 ];
@@ -95,7 +97,9 @@ export default function App() {
     document.getElementById(`tab-${next.id}`)?.focus();
   };
 
-  const banner = story ? story.banner : BANNER_UNKNOWN;
+  const banner = info?.source === "real"
+    ? "REAL mode: the Real tab mints a live PingOne token through AWS AgentCore Identity. The scenario gate is still the mock model; the token on the Real tab is real and short-lived."
+    : story ? story.banner : BANNER_UNKNOWN;
   return (
     <div className={`app${presenter ? " app--presenter" : ""}`}>
       <header>
@@ -140,6 +144,7 @@ export default function App() {
               {tab === "gate" && <ClaimGate key={vertical} story={story} resetSignal={resetSignal} requestedId={requested} onSelect={pickScenario} />}
               {tab === "three-lo" && <ThreeLo key={vertical} vertical={vertical} resetSignal={resetSignal} />}
               {tab === "obo" && <OnBehalfOf key={vertical} vertical={vertical} resetSignal={resetSignal} />}
+              {tab === "real" && <RealRun info={info} />}
               {tab === "diagram" && <DiagramTab vertical={vertical} resetSignal={resetSignal} />}
               {tab === "talk" && <TalkTrack talk={story.talkTrack} />}
             </>

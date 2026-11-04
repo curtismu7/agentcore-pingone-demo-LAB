@@ -111,3 +111,16 @@ test('UDP connect to loopback still works under the guard, and a connected send 
     assert.deepEqual(g.attempts, []);
   } finally { c.close(); server.close(); g.restore(); }
 });
+
+test('Real mode opens only the AgentCore Identity host for the configured region - never a wildcard', async () => {
+  const env = { APD_REAL_ENGINE: '1', AWS_ACCESS_KEY_ID: 'k', AWS_SECRET_ACCESS_KEY: 's', AWS_REGION: 'us-east-1', APD_REAL_WORKLOAD_NAME: 'w', APD_REAL_PROVIDER_NAME: 'p' };
+  installNetguard(env);
+  try {
+    // the one allowed host resolves and fetches (nothing is listening, but the guard does not refuse)
+    await assert.doesNotReject(() => dns.promises.lookup('bedrock-agentcore.us-east-1.amazonaws.com'));
+    // a sibling region and any other host stay blocked
+    await assert.rejects(() => dns.promises.lookup('bedrock-agentcore.eu-west-1.amazonaws.com'), /network blocked/);
+    await assert.rejects(() => dns.promises.lookup('evil.example.invalid'), /network blocked/);
+    await assert.rejects(() => fetch('https://s3.us-east-1.amazonaws.com/'), /network blocked/);
+  } finally { installNetguard().restore(); }
+});
