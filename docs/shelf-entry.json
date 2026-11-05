@@ -1,7 +1,7 @@
 {
   "demos": [
     {
-      "id": "agentcore-pingone-demo-LAB",
+      "id": "agentcore-pingone-demo-lab",
       "name": "AgentCore PingOne LAB",
       "kind": "Demo",
       "description": "An AI agent on AWS Bedrock AgentCore Runtime whose identity comes from PingOne, in mock only: the M2M flow (the agent's own token), the USER_FEDERATION 3LO flow (a human login through the agent, four measured shapes), and on-behalf-of delegation. Mock/Real toggle; Real ships disabled.",
