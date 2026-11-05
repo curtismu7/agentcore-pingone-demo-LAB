@@ -3,7 +3,7 @@
 An AI agent on AWS Bedrock AgentCore Runtime whose identity comes from PingOne, shown in mock only: the M2M flow (the agent's own token), the USER_FEDERATION flow (3LO: a real human login through the agent), and downstream on-behalf-of delegation.
 
 Tier: Demo
-Repo: https://github.com/ping-sandbox/agentcore-pingone-demo-LAB
+Repo: https://github.com/curtismu7/agentcore-pingone-demo-LAB
 Catalog: D114 (assigned by the owner, 2026-11-04)
 
 **Everything here is simulated.** Nothing calls a real AgentCore account, PingOne environment, AWS API or tenant, and nothing leaves your machine. Where a shape comes from a real build we name the source; everything else is labelled lab-invented or lab reading.
