@@ -156,6 +156,7 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   // Reset clears this workspace's evaluations only.
   api.post('/reset', withWorkspace((ws, _req, res) => { workspaces.reset(ws); res.json({ reset: 'ok', workspace: ws }); }));
   api.use((_req, res) => res.status(404).json({ error: 'not_found' }));
+  app.get('/api/shelf', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json(shelfInfo()); }); // the header "Shelf" button
   app.use('/api', api);
   // Prefix-tolerant callback (measured gotcha: behind the shared lab-proxy, a registered return URL that carries
   // the app's path prefix arrives here UN-stripped - /agentcore-pingone/api/real/callback - because the proxy only
@@ -171,7 +172,6 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
     return next();
   });
   if (fs.existsSync(path.join(WEB_DIST, 'index.html'))) {
-app.get('/api/shelf', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json(shelfInfo()); }); // the header "Shelf" button
     app.use(express.static(WEB_DIST));
     app.get(/^\/(?!api\/).*/, (_req, res) => res.sendFile(path.join(WEB_DIST, 'index.html')));
   }
