@@ -16,7 +16,7 @@ test('the files the standalone rules ask for are present, and the old SE/k8s and
 
 test('the shelf entry is valid and portable: relative composeFile, loopback url, health path, catalog id D114, no hosted fields', () => {
   const e = JSON.parse(read('docs/shelf-entry.json')).demos[0];
-  assert.equal(e.id, 'agentcore-pingone-demo-LAB');
+  assert.equal(e.id, 'agentcore-pingone-demo-lab');
   assert.ok(e.description.length > 0 && e.description.length <= 300, 'the shelf refuses to start on a description over 300 characters');
   assert.equal(e.kind, 'Demo');
   assert.equal(e.healthPath, '/api/health');
