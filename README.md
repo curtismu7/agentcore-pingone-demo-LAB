@@ -8,6 +8,35 @@ Catalog: D114 (assigned by the owner, 2026-11-04)
 
 **Everything here is simulated.** Nothing calls a real AgentCore account, PingOne environment, AWS API or tenant, and nothing leaves your machine. Where a shape comes from a real build we name the source; everything else is labelled lab-invented or lab reading.
 
+## Run from a clone
+
+Prerequisites: Node 26. Docker (OrbStack) only for the Docker form.
+
+```
+git clone https://github.com/curtismu7/agentcore-pingone-demo-LAB.git
+cd agentcore-pingone-demo-LAB
+npm ci
+npm run build
+npm run doctor
+npm start
+```
+
+## Ports, and what to do if the port is taken
+
+```
+Ports: agentcore-pingone-demo-LAB listens on 7601 (set with PORT, default 7601).
+Port range for this app: 7600-7699.
+
+If the port is taken:
+1. Find what is using it:
+   lsof -iTCP:7601 -sTCP:LISTEN -n -P
+2. If it is an old copy of this app, stop that process: kill <PID>.
+3. If it is something else, stop it, or start this app on another port:
+   PORT=<other port> npm start
+```
+
+Other variable: `HOST_PORT=7601` (Docker host port). Keep both inside 7600-7699.
+
 ## What is simulated
 
 **Mock mode (default).** Everything runs offline in one process. Tokens are mock-issued by this app and shown raw for education; the step order, error codes and check names are the lab's own model. Every host ends in `.example`, and a netguard blocks outbound connections (fetch, sockets, DNS, UDP send and connect) with a self-test and a test that asserts zero attempts. It needs no tenant and no credentials.
@@ -50,7 +79,7 @@ Docker (OrbStack; publishes `127.0.0.1` only):
 HOST_PORT=7601 docker compose --env-file ~/Development/.env up --build -d  (all settings, including the Real-mode ones, come from the shared ~/Development/.env; this repo has no .env)
 ```
 
-Reached through the shared lab proxy: https://local.ping-devops.com:8443/agentcore-pingone/ (the cookie routes the SPA to this lab; the loopback URL above always works).
+Reached through the shared lab proxy (owner rule 2026-11-03: labs are reached by the proxy domain, one entry per lab; the loopback URL above always works).
 
 ## Layout
 
