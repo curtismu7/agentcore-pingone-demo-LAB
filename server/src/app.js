@@ -21,6 +21,7 @@ import { createReleaseRouter } from './releaseRoutes.js';
 import { maskDeep, maskTypedDeep } from './mask.js';
 import { realM2m } from './realEngine.js';
 import { createPending, realThreeLoComplete, realThreeLoStart } from './realThreeLo.js';
+import { shelfInfo } from './shelfLink.js';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const WEB_DIST = process.env.WEB_DIST || path.resolve(HERE, '../../web/dist');
@@ -170,6 +171,7 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
     return next();
   });
   if (fs.existsSync(path.join(WEB_DIST, 'index.html'))) {
+app.get('/api/shelf', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json(shelfInfo()); }); // the header "Shelf" button
     app.use(express.static(WEB_DIST));
     app.get(/^\/(?!api\/).*/, (_req, res) => res.sendFile(path.join(WEB_DIST, 'index.html')));
   }

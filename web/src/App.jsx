@@ -9,6 +9,7 @@ import RealRun from "./components/RealRun";
 import ModeToggle from "./components/ModeToggle";
 import { getJson, resetWorkspace, requestModeSwitch } from "./api";
 import { NO_LIVE, RELEASE_BANNER } from "./releaseText";
+import ShelfLink from "./components/ShelfLink.jsx";
 
 export const TABS = [
   { id: "gate", label: "M2M gate" },
@@ -110,6 +111,7 @@ export default function App() {
             {!presenter && story && <p className="head__intro">{story.intro}</p>}
           </div>
           <div className="head__tools">
+            <ShelfLink />
             <ModeToggle info={info} onSelect={onMode} />
             {!presenter && (
               <label className="inline">Vertical{" "}
