@@ -11,6 +11,7 @@ services:
     ports:
       - "127.0.0.1:${HOST_PORT:-7601}:7601"
     environment:
+      SHELF_URL: ${SHELF_URL:-}
       PORT: "7601"
       APD_BIND: 0.0.0.0
       APD_MODE: mock
