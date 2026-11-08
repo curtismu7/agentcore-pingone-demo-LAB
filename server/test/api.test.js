@@ -211,3 +211,18 @@ test('the 3LO callback is prefix-tolerant: /agentcore-pingone/api/real/callback 
     assert.equal(r2.status, 502);
   });
 });
+
+test('GET /api/shelf is reachable without a web build and reads SHELF_URL; POST is refused', async () => {
+  const prev = process.env.SHELF_URL;
+  process.env.SHELF_URL = 'https://shelf.example:8443/';
+  try {
+    await withServer(async (url) => {
+      const r = await fetch(`${url}/api/shelf`);
+      assert.equal(r.status, 200);
+      assert.deepEqual(await r.json(), { shelfUrl: 'https://shelf.example:8443' });
+      assert.notEqual((await fetch(`${url}/api/shelf`, { method: 'POST', headers: { origin: url } })).status, 200);
+    });
+  } finally {
+    if (prev === undefined) delete process.env.SHELF_URL; else process.env.SHELF_URL = prev;
+  }
+});
