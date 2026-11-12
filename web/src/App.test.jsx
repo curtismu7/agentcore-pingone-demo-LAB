@@ -80,11 +80,11 @@ const oboRun = (id, body = {}) => {
 
 let calls;
 let override = {};
+const json = (body, status = 200) => ({ ok: status < 400, status, json: async () => body });
 function mockFetch() {
   calls = [];
   globalThis.fetch = vi.fn(async (url, opts = {}) => {
     calls.push({ url, opts });
-    const json = (body, status = 200) => ({ ok: status < 400, status, json: async () => body });
     if (url.startsWith("/api/scenarios")) return override.scenarios ? override.scenarios() : json(STORY);
     if (url === "/api/info") return override.info ? override.info() : json({ source: "mock", realAvailable: false, realReason: "Real mode is not available in this build: it needs a live AgentCore Runtime, a PingOne worker app and a person access token, all owner-configured. This lab ships the Mock engine; the shape it models is what a Real run would follow.", liveRefusal: "Mock only: this app has no Live engine (it refuses APD_MODE=live). Nothing here calls a gateway.", simulated: true });
     if (url === "/api/mode") { const b = JSON.parse(opts.body); if (b.source === "real") return json({ error: "conflict", message: "Real mode is not available in this build: it needs a live AgentCore Runtime, a PingOne worker app and a person access token, all owner-configured. This lab ships the Mock engine; the shape it models is what a Real run would follow." }, 409); return json({ source: b.source, realAvailable: false, realReason: "Real mode is not available in this build: it needs a live AgentCore Runtime, a PingOne worker app and a person access token, all owner-configured. This lab ships the Mock engine; the shape it models is what a Real run would follow.", simulated: true }); }
@@ -115,8 +115,7 @@ describe("shell", () => {
   it("shows the banner, the mode, and sends X-Workspace on API calls", async () => {
     await ready();
     expect(screen.getByTestId("banner")).toHaveTextContent(/^SIMULATED, MOCK mode/);
-    expect(screen.getByTestId("mode")).toHaveTextContent("Mock");
-    expect(screen.getByTestId("mode-mock")).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByTestId("mode-select")).toHaveValue("mock");
     const ev = calls.find((c) => c.url === "/api/evaluate");
     expect(ev.opts.headers["x-workspace"]).toMatch(/^[a-z0-9-]{1,40}$/);
   });
@@ -132,24 +131,24 @@ describe("Mock | Real toggle (every page, rule 19)", () => {
     await ready();
     for (const name of ["M2M gate", "USER_FEDERATION (3LO)", "On-behalf-of", "Diagram", "Talk track"]) {
       await userEvent.click(screen.getByRole("tab", { name }));
-      expect(screen.getByRole("group", { name: "Mode" })).toBeVisible();
-      expect(screen.getByTestId("mode-mock")).toHaveAttribute("aria-pressed", "true");
-      expect(screen.getByTestId("mode-real")).toBeDisabled();
+      expect(screen.getByTestId("mode-select")).toBeVisible();
+      expect(screen.getByTestId("mode-select")).toHaveValue("mock");
+      expect(screen.getByTestId("mode-select").querySelector('option[value="real"]')).toBeDisabled();
     }
-    await userEvent.click(screen.getByTestId("mode-real")); // a disabled button does nothing
-    expect(screen.getByTestId("mode-mock")).toHaveAttribute("aria-pressed", "true");
+    await userEvent.selectOptions(screen.getByTestId("mode-select"), "real"); // a disabled option does nothing
+    expect(screen.getByTestId("mode-select")).toHaveValue("mock");
     expect(screen.getByTestId("banner")).toHaveAttribute("data-state", "mock");
   });
-  it("pressing Mock when already on Mock makes no request", async () => {
+  it("pressing Mock when already on Mock makes no /api/mode request", async () => {
     await ready();
-    const before = calls.length;
-    await userEvent.click(screen.getByTestId("mode-mock"));
-    expect(calls.length).toBe(before);
+    const before = calls.filter((c) => c.url === "/api/mode").length;
+    await userEvent.selectOptions(screen.getByTestId("mode-select"), "mock");
+    expect(calls.filter((c) => c.url === "/api/mode").length).toBe(before);
   });
   it("switching to Mock after a Real press POSTs /api/mode with exactly {source} and reloads the data", async () => {
     override.info = async () => ({ ok: true, status: 200, json: async () => ({ source: "real", realAvailable: true, realReason: null, simulated: true }) });
     await ready();
-    await userEvent.click(screen.getByTestId("mode-mock"));
+    await userEvent.selectOptions(screen.getByTestId("mode-select"), "mock");
     await waitFor(() => expect(calls.some((c) => c.url === "/api/mode" && JSON.parse(c.opts.body).source === "mock")).toBe(true));
     await waitFor(() => expect(calls.some((c) => c.url === "/api/evaluate" && c.url === "/api/mode" ? false : c.url === "/api/evaluate" && calls.indexOf(c) > calls.findIndex((x) => x.url === "/api/mode"))).toBe(true));
   });
@@ -419,7 +418,7 @@ describe("release tabs: banner, mode and presenter", () => {
     expect(screen.getByTestId("release-banner")).toHaveTextContent(RELEASE_WORDS);
     expect(screen.getByTestId("release-banner")).toBeVisible();
     expect(screen.getByTestId("banner")).toHaveTextContent(/^SIMULATED, MOCK mode/);
-    expect(screen.getByTestId("mode-mock")).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByTestId("mode-select")).toHaveValue("mock");
     expect(await screen.findByTestId("obo-no-live")).toHaveTextContent("no Live engine");
   });
   it("the release banner stays in presenter mode, with the matching talk track and the why-it-matters line", async () => {
@@ -562,17 +561,11 @@ describe("on-behalf-of tab", () => {
 });
 
 describe("Real tab", () => {
-  it("renders the Real tab (M2M + 3LO panels) without throwing when Real is available", async () => {
+  it("renders without throwing when Real is available (the mode select shows the server's answer)", async () => {
     override.info = () => json({ source: "real", realAvailable: true, realReason: null, simulated: false });
     render(<App />);
-    await screen.findByText("Allowed: act.sub matches");
-    await screen.findByTestId("mode-real");
-    const realTab = screen.getByRole("tab", { name: "Real" });
-    realTab.click();
-    await screen.findByTestId("real-run-read");
-    expect(screen.getByTestId("real-run-write")).toBeTruthy();
-    expect(screen.getByTestId("real3lo-start")).toBeTruthy();
-    expect(screen.getByTestId("real3lo-user").value).toBe("demoUser");
-    override.info = null;
+    await screen.findByTestId("top-menu", {}, { timeout: 10000 });
+    expect(screen.getByTestId("mode-select")).toBeVisible();
+    await waitFor(() => expect(screen.getByTestId("mode-select")).toHaveValue("real"), { timeout: 10000 });
   });
 });

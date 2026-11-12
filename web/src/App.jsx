@@ -6,13 +6,18 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import DiagramTab from "./components/DiagramTab";
 import TalkTrack from "./components/TalkTrack";
 import RealRun from "./components/RealRun";
-import ModeToggle from "./components/ModeToggle";
 import { getJson, resetWorkspace, requestModeSwitch } from "./api";
 import { NO_LIVE, RELEASE_BANNER } from "./releaseText";
 import ShelfLink from "./components/ShelfLink.jsx";
+import TopMenu, { applyFontSize } from "./top-menu/TopMenu.jsx";
 
 const THEME_KEY = "agentcore.theme";
 const THEMES = [["auto", "Auto"], ["light", "Light"], ["dark", "Dark"]];
+const FONT_KEY = "agentcore.font";
+function initialFont() {
+  try { const f = localStorage.getItem(FONT_KEY); if (["S", "M", "L"].includes(f)) return f; } catch { /* storage blocked */ }
+  return "M";
+}
 function initialTheme() {
   try { const t = localStorage.getItem(THEME_KEY); if (t === "light" || t === "dark") return t; } catch { /* storage blocked */ }
   return "auto";
@@ -50,12 +55,17 @@ export default function App() {
   const [resetSignal, setResetSignal] = useState(0);
   const [resetMsg, setResetMsg] = useState("");
   const [theme, setTheme] = useState(initialTheme);
+  const [fontStep, setFontStep] = useState(initialFont);
   const pickTheme = (next) => {
     try { if (next === "auto") localStorage.removeItem(THEME_KEY); else localStorage.setItem(THEME_KEY, next); } catch { /* not remembered */ }
     setTheme(next);
   };
   // The picker only sets data-theme; the shared stylesheet does the rest ("auto" follows the system setting).
   useEffect(() => { if (theme === "auto") delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = theme; }, [theme]);
+  useEffect(() => {
+    applyFontSize(fontStep);
+    try { localStorage.setItem(FONT_KEY, fontStep); } catch { /* not remembered */ }
+  }, [fontStep]);
   const tabsRef = useRef(null);
 
   useEffect(() => { getJson("/api/info").then(setInfo, () => setInfo(null)); }, []);
@@ -92,12 +102,13 @@ export default function App() {
   }, []);
 
   const onMode = useCallback(async (next) => {
+    if (next === (info?.source ?? "mock")) return; // picking the current mode is a no-op, not a request
     try {
       const r = await requestModeSwitch(next);
       setInfo(r);
       setResetSignal((n) => n + 1); // reload all data after a switch (rule 19)
     } catch (e) { /* Real unconfigured: the toggle stays on Mock; the button's tooltip carries the how-to */ }
-  }, []);
+  }, [info?.source]);
 
   const reset = useCallback(async () => {
     const ok = await resetWorkspace().catch(() => false);
@@ -125,22 +136,18 @@ export default function App() {
             {!presenter && story && <p className="head__intro">{story.intro}</p>}
           </div>
           <div className="head__tools">
-            <ShelfLink />
-            <ModeToggle info={info} onSelect={onMode} />
-            <label className="shell-theme">Theme
-              <select value={theme} onChange={(e) => pickTheme(e.target.value)}>
-                {THEMES.map(([id, label]) => <option key={id} value={id}>{label}</option>)}
-              </select>
-            </label>
-            {!presenter && (
-              <label className="inline">Vertical{" "}
-                <select value={vertical} onChange={(e) => setVertical(e.target.value)}>
-                  {(story ? story.verticals : ["retail"]).map((v) => <option key={v} value={v}>{v}</option>)}
-                </select>
-              </label>
-            )}
-            <button type="button" onClick={reset} data-testid="reset">Reset</button>
-            <button type="button" aria-pressed={presenter} onClick={() => setPresenter((v) => !v)} data-testid="presenter">{presenter ? "Exit presenter (Esc)" : "Presenter (P)"}</button>
+            <TopMenu
+              mode={info ? { value: info.source === "real" ? "real" : "mock", onChange: onMode, realAvailable: info.realAvailable === true, realHint: info.realReason || "Real mode is not available." } : undefined}
+              vertical={{ value: vertical, onChange: setVertical, options: story ? story.verticals : ["retail"] }}
+              theme={{ value: theme, onChange: pickTheme }}
+              fontSize={{ value: fontStep, onChange: setFontStep }}
+              present={{ active: presenter, onToggle: () => setPresenter((v) => !v), label: "Presenter (P)" }}
+              help={{ href: "https://github.com/curtismu7/agentcore-pingone-demo-LAB#readme" }}
+              version={info?.version || null}
+              onReset={reset}
+            >
+              <ShelfLink />
+            </TopMenu>
           </div>
         </div>
       </header>

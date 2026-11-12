@@ -48,7 +48,7 @@ export function createApp({ health = createHealth(), configFile = CONFIG, worksp
   api.get('/three-lo', (req, res) => { res.set('Cache-Control', 'no-store'); res.json({ ...buildThreeLoStory(castFor(req)), tokenLabel: 'MOCK values: invented for education, never a real credential', simulated: true }); });
   // Rule 19: what this build is, and the Mock/Real switch: GET /api/info returns source and realAvailable;
   // POST /api/mode with exactly {"source"} switches at runtime; Real unconfigured -> 409 with the how-to.
-  api.get('/info', (_req, res) => { res.set('Cache-Control', 'no-store'); res.json({ ...mode.info(), liveRefusal: NO_LIVE, simulated: mode.source() !== 'real' }); });
+  api.get('/info', (_req, res) => { res.set('Cache-Control', 'no-store'); let version = null; try { version = JSON.parse(fs.readFileSync(new URL('../../package.json', import.meta.url), 'utf8')).version || null; } catch { /* no version */ } res.json({ ...mode.info(), liveRefusal: NO_LIVE, simulated: mode.source() !== 'real', version }); });
   api.post('/mode', (req, res) => {
     const b = req.body;
     if (!b || typeof b !== 'object' || Array.isArray(b) || Object.keys(b).length !== 1 || !MODES.includes(b.source)) return res.status(400).json({ error: 'bad_request', detail: 'body must be exactly {"source": "mock" or "real"}' });
