@@ -56,7 +56,8 @@ test('GET /api/info is rule 19: source mock, realAvailable false with the how-to
   await withServer(async (url) => {
     const post = (b) => fetch(`${url}/api/mode`, { method: 'POST', headers: { 'content-type': 'application/json', origin: url }, body: JSON.stringify(b) });
     const j = await (await fetch(`${url}/api/info`)).json();
-    assert.deepEqual(Object.assign(j, { version: undefined }), { source: 'mock', realAvailable: false, realReason: j.realReason, liveRefusal: j.liveRefusal, simulated: true });
+    delete j.version; // the TopMenu wiring adds the app version to /api/info
+    assert.deepEqual(j, { source: 'mock', realAvailable: false, realReason: j.realReason, liveRefusal: j.liveRefusal, simulated: true });
     assert.match(j.realReason, /Real mode is not available/);
     const bad = await post({ source: 'real' });
     assert.equal(bad.status, 409);
@@ -70,7 +71,7 @@ test('GET /api/info is rule 19: source mock, realAvailable false with the how-to
     const j2 = await (await fetch(`${url}/api/scenarios`)).json();
     assert.equal('hosted' in j2, false);
     assert.match(j2.banner, /^SIMULATED, MOCK mode/);
-  });
+  }, { env: {} }); // the owner's machine may carry the Real opt-in; this test pins the mock default
 });
 
 test('an oversized or malformed body gets a short JSON error, never a stack trace or a file path', async () => {
