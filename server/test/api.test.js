@@ -56,7 +56,7 @@ test('GET /api/info is rule 19: source mock, realAvailable false with the how-to
   await withServer(async (url) => {
     const post = (b) => fetch(`${url}/api/mode`, { method: 'POST', headers: { 'content-type': 'application/json', origin: url }, body: JSON.stringify(b) });
     const j = await (await fetch(`${url}/api/info`)).json();
-    assert.deepEqual(j, { source: 'mock', realAvailable: false, realReason: j.realReason, liveRefusal: j.liveRefusal, simulated: true });
+    assert.deepEqual(Object.assign(j, { version: undefined }), { source: 'mock', realAvailable: false, realReason: j.realReason, liveRefusal: j.liveRefusal, simulated: true });
     assert.match(j.realReason, /Real mode is not available/);
     const bad = await post({ source: 'real' });
     assert.equal(bad.status, 409);
