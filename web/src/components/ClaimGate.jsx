@@ -115,13 +115,13 @@ export default function ClaimGate({ story, resetSignal, requestedId, onSelect })
         <h2 id="tok-h">Token (decoded)</h2>
         <p className="tag tag--warn">{story.tokenLabel}</p>
         <h3>Header</h3><Json value={scenario.token.header} label="Token header" />
-        <h3>Payload (claims)</h3><Json value={scenario.token.claims} label="Token payload" testId="token-claims" />
+        <h3>Payload (claims)</h3><Json value={scenario.token.claims} label="Token payload" testId="token-claims" hot={["act", "client_id"]} />
         <h3>Signature</h3><Json value={scenario.token.signature} label="Token signature" />
       </section>
       <section className="panel" aria-labelledby="rule-h">
         <h2 id="rule-h">Rule: {story.rule.name}</h2>
         <p className="muted">{story.rule.appliesTo}</p>
-        <Json value={{ requiredClaims: story.rule.requiredClaims }} label="Rule" testId="rule-json" />
+        <Json value={{ requiredClaims: story.rule.requiredClaims }} label="Rule" testId="rule-json" hot={["requiredClaims", "path", "equals"]} />
         <p className="muted">{story.rule.note}</p>
         <h3>What we know, and how well</h3>
         <ul className="facts" data-testid="facts">

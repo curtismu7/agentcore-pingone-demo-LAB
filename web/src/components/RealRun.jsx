@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { getJson } from "../api";
+import Json from "./Json";
 
 // The Real tab: one live M2M run through AWS AgentCore Identity -> PingOne, shown the same way the Mock
 // gate shows tokens: raw values, decoded claims, every check visible. The button 409s with the owner
@@ -61,11 +62,7 @@ function ThreeLoPanel({ realOn }) {
       {state === "done" && detail && (
         <div data-testid="real3lo-result">
           <h4>Decoded claims (the real user token)</h4>
-          <ul>
-            {Object.entries(detail.claims || {}).map(([k, v]) => (
-              <li key={k}><code>{k}</code>: <code>{typeof v === "string" ? v : JSON.stringify(v)}</code></li>
-            ))}
-          </ul>
+          <Json value={detail.claims || {}} label="Decoded claims of the real user token" testId="real3lo-claims" hot={["act", "client_id"]} />
           <p className="muted">scope <code>{detail.scope}</code> - user <code>{detail.userId}</code>{detail.expiresIn ? <> - expires in {detail.expiresIn}s</> : null}</p>
         </div>
       )}
@@ -128,11 +125,7 @@ export default function RealRun({ info }) {
           ) : run.ok ? (
             <>
               <h3>Decoded claims (the real token)</h3>
-              <ul>
-                {Object.entries(run.claims || {}).map(([k, v]) => (
-                  <li key={k}><code>{k}</code>: <code>{typeof v === "string" ? v : JSON.stringify(v)}</code></li>
-                ))}
-              </ul>
+              <Json value={run.claims || {}} label="Decoded claims of the real token" testId="real-claims" hot={["act", "client_id"]} />
               <h3>Token head</h3>
               <pre className="token-box" data-testid="real-token">{run.tokenHead}</pre>
               <p className="muted">
