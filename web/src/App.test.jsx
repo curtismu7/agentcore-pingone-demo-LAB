@@ -4,6 +4,7 @@ import { visible } from "./safeText";
 import userEvent from "@testing-library/user-event";
 import App, { BANNER_UNKNOWN } from "./App";
 import { labelOffsets } from "./components/PatternDiagram";
+import { setJsonView } from "./components/JsonPane.jsx";
 
 const TOKEN = (claims) => ({ header: { alg: "RS256" }, claims, signature: "<MOCK-SIGNATURE: not a real signature>" });
 const SCEN = [
@@ -107,7 +108,7 @@ function mockFetch() {
     return json({}, 404);
   });
 }
-beforeEach(() => { override = {}; mockFetch(); window.location.hash = ""; });
+beforeEach(() => { override = {}; mockFetch(); window.location.hash = ""; setJsonView("form"); });
 
 const ready = async () => { render(<App />); await screen.findByText("Allowed: act.sub matches"); await screen.findByTestId("verdict"); };
 
@@ -158,7 +159,9 @@ describe("M2M gate tab", () => {
   it("allows the matching scenario and shows token JSON, rule, flattened paths and hops", async () => {
     await ready();
     expect(screen.getByTestId("verdict")).toHaveTextContent("ALLOW");
-    // Rule 24: panes default to the Formatted view; switch to Raw for the exact JSON text
+    // Rule 24: a JSON pane opens as the Form (a label and a value per field, the lab's key claims stood out) and the JSON button shows the exact text.
+    expect(screen.getByTestId("token-claims")).toHaveTextContent("client_id");
+    expect(screen.getByTestId("token-claims").querySelector('[data-hot="true"]')).not.toBeNull();
     await userEvent.click(screen.getByTestId("token-claims-raw"));
     expect(screen.getByTestId("token-claims")).toHaveTextContent('"sub": "a"');
     expect(screen.getByTestId("rule-json")).toHaveTextContent("act.sub");
@@ -203,6 +206,8 @@ describe("USER_FEDERATION (3LO) tab", () => {
   it("runs the allowed scenario and shows the token with the human's sub", async () => {
     await openLo();
     await waitFor(() => expect(screen.getByTestId("tl-verdict")).toHaveTextContent("ALLOW"));
+    expect(screen.getByTestId("tl-token")).toHaveTextContent("user-1001"); // the Form view
+    await userEvent.click(within(screen.getByTestId("tl-token")).getByRole("button", { name: "JSON" }));
     expect(screen.getByTestId("tl-token")).toHaveTextContent('"sub": "user-1001"');
     expect(screen.getByTestId("tl-user")).toHaveTextContent("Alex Rivera");
     expect(screen.getByTestId("tl-lesson")).toHaveTextContent("Every step lines up.");

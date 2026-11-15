@@ -19,7 +19,7 @@ function Verdict({ run }) {
       {run.token && (
         <div data-testid="tl-token">
           <h3>The token the agent received</h3>
-          <Json value={run.token} />
+          <Json value={run.token} label="The token the agent received" hot={["act", "client_id"]} />
         </div>
       )}
       {run.user && <p data-testid="tl-user">The human who signed in: <code>{visible(run.user.name)}</code> (sub <code>{visible(run.user.sub)}</code>).</p>}

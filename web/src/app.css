@@ -37,7 +37,7 @@ button.primary[aria-disabled="true"] { opacity: 0.88; }
 .tag--claim[data-tag="invented"] { border-style: dashed; }
 .facts { padding-left: 18px; line-height: 1.5; font-size: 13px; }
 .facts li { margin-bottom: 6px; }
-.json { margin: 4px 0; padding: 10px; background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; overflow-x: auto; white-space: pre-wrap; overflow-wrap: anywhere; }
+.json { margin: 4px 0; padding: 10px; background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 8px; font-size: 13px; white-space: pre-wrap; overflow-wrap: anywhere; }
 .verdict { border: 2px solid var(--border); background: var(--surface-2); color: var(--text); border-radius: 8px; padding: 10px 14px; }
 .verdict--allow { border-color: var(--status-ok); }
 .verdict--deny { border-color: var(--danger-text); }

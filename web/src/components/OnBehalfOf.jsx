@@ -102,9 +102,9 @@ export default function OnBehalfOf({ vertical, resetSignal }) {
             <h2 id="obo-tok-h">The tokens (MOCK-ISSUED)</h2>
             <p className="muted">Signed with a keyed hash the lab computes and recomputes, a stand-in for a real signature. Never a real credential.</p>
             <h3>Caller token (what the agent presented)</h3>
-            <Json value={run.inbound} label="Caller token" testId="obo-inbound" />
+            <Json value={run.inbound} label="Caller token" testId="obo-inbound" hot={["act", "jti"]} />
             <h3>Exchanged token (what the backend receives)</h3>
-            {run.result.exchanged ? <Json value={run.result.exchanged} label="Exchanged token" testId="obo-exchanged" /> : <p className="muted" data-testid="obo-exchanged">None: the exchange was refused.</p>}
+            {run.result.exchanged ? <Json value={run.result.exchanged} label="Exchanged token" testId="obo-exchanged" hot={["act", "jti"]} /> : <p className="muted" data-testid="obo-exchanged">None: the exchange was refused.</p>}
           </section>
           <section className="panel" aria-labelledby="obo-be-h">
             <h2 id="obo-be-h">What the backend does with it</h2>
