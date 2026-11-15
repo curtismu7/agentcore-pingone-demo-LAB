@@ -158,6 +158,8 @@ describe("M2M gate tab", () => {
   it("allows the matching scenario and shows token JSON, rule, flattened paths and hops", async () => {
     await ready();
     expect(screen.getByTestId("verdict")).toHaveTextContent("ALLOW");
+    // Rule 24: panes default to the Formatted view; switch to Raw for the exact JSON text
+    await userEvent.click(screen.getByTestId("token-claims-raw"));
     expect(screen.getByTestId("token-claims")).toHaveTextContent('"sub": "a"');
     expect(screen.getByTestId("rule-json")).toHaveTextContent("act.sub");
     expect(within(screen.getByTestId("flat-table")).getByText("act.sub")).toBeInTheDocument();
