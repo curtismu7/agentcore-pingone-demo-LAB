@@ -41,7 +41,7 @@ function ThreeLoPanel({ realOn }) {
     finally { setBusy(false); }
   };
 
-  return (
+  return ( /* ui-pattern: allow P2 the .banner paragraphs below are RealRun's own status notices, not the simulation banner; App.jsx renders the simulation banner as main's first child on this tab too (verified in the browser) */
     <section aria-label="Real 3LO: a real human login">
       <h3>Real 3LO: a real human signs in</h3>
       <p>
@@ -110,7 +110,7 @@ export default function RealRun({ info }) {
         </p>
       )}
       <div className="actions">
-        <button type="button" className="btn" disabled={busy || !realOn} onClick={() => runM2m("orders:read")} data-testid="real-run-read">
+        <button type="button" className="btn primary" disabled={busy || !realOn} onClick={() => runM2m("orders:read")} data-testid="real-run-read">
           {busy ? "Exchanging..." : "Run live M2M (orders:read)"}
         </button>
         <button type="button" className="btn" disabled={busy || !realOn} onClick={() => runM2m("orders:write")} data-testid="real-run-write">
