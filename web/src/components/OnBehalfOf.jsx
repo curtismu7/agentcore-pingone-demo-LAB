@@ -92,7 +92,7 @@ export default function OnBehalfOf({ vertical, resetSignal }) {
         </select>
         <label htmlFor="obo-scope">Requested scope (space separated)</label>
         <input id="obo-scope" type="text" value={shownScope} maxLength={200} spellCheck={false} autoComplete="off" onChange={(e) => setScope(e.target.value)} />
-        <ActionButton off={busy} onClick={() => exec(id, resource, scope === null ? shownScope : scope)}>Evaluate this request</ActionButton>
+        <ActionButton className="primary" off={busy} onClick={() => exec(id, resource, scope === null ? shownScope : scope)}>Evaluate this request</ActionButton>
         {fail && <p className="field-error" role="alert" data-testid="obo-fail">{fail}</p>}
         <Verdict run={run} />
       </section>

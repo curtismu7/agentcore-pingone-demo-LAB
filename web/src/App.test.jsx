@@ -110,6 +110,8 @@ function mockFetch() {
 }
 beforeEach(() => { override = {}; mockFetch(); window.location.hash = ""; setJsonView("form"); });
 
+// The lab sections are the shell-bar's pill nav links (STANDALONE-UI-PATTERNS section 1); the current one has aria-current="page".
+const nav = () => within(screen.getByRole("navigation", { name: "Lab sections" }));
 const ready = async () => { render(<App />); await screen.findByText("Allowed: act.sub matches"); await screen.findByTestId("verdict"); };
 
 describe("shell", () => {
@@ -131,7 +133,7 @@ describe("Mock | Real toggle (every page, rule 19)", () => {
   it("is in the header on every tab; Mock is pressed; Real is disabled with the server's how-to tooltip and the page stays in mock", async () => {
     await ready();
     for (const name of ["M2M gate", "USER_FEDERATION (3LO)", "On-behalf-of", "Diagram", "Talk track"]) {
-      await userEvent.click(screen.getByRole("tab", { name }));
+      await userEvent.click(nav().getByRole("link", { name }));
       expect(screen.getByTestId("mode-select")).toBeVisible();
       expect(screen.getByTestId("mode-select")).toHaveValue("mock");
       expect(screen.getByTestId("mode-select").querySelector('option[value="real"]')).toBeDisabled();
@@ -192,7 +194,7 @@ describe("M2M gate tab", () => {
 });
 
 describe("USER_FEDERATION (3LO) tab", () => {
-  const openLo = async () => { await ready(); await userEvent.click(screen.getByRole("tab", { name: "USER_FEDERATION (3LO)" })); await screen.findByTestId("three-lo-tab"); };
+  const openLo = async () => { await ready(); await userEvent.click(nav().getByRole("link", { name: "USER_FEDERATION (3LO)" })); await screen.findByTestId("three-lo-tab"); };
   it("shows the steps, the two configured shapes and the claim rows, tagged", async () => {
     await openLo();
     expect(screen.getByTestId("tl-steps")).toHaveTextContent("GetResourceOauth2Token");
@@ -233,7 +235,7 @@ describe("USER_FEDERATION (3LO) tab", () => {
   it("a server refusal is shown as text, not as markup", async () => {
     override.loEval = async () => ({ ok: false, status: 400, json: async () => ({ error: "unknown_scenario", detail: "no such scenario" }) });
     await ready();
-    await userEvent.click(screen.getByRole("tab", { name: "USER_FEDERATION (3LO)" }));
+    await userEvent.click(nav().getByRole("link", { name: "USER_FEDERATION (3LO)" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("unknown_scenario: no such scenario");
   });
   it("ignores a slow answer that arrives after a newer one (stale-response guard)", async () => {
@@ -247,7 +249,7 @@ describe("USER_FEDERATION (3LO) tab", () => {
     };
     override.lo = () => ({ ok: true, status: 200, json: async () => LO_STORY }); // openLo's own load must not consume a click counter
     await ready();
-    await userEvent.click(screen.getByRole("tab", { name: "USER_FEDERATION (3LO)" }));
+    await userEvent.click(nav().getByRole("link", { name: "USER_FEDERATION (3LO)" }));
     await screen.findByTestId("three-lo-tab");
     // The first evaluate (the tab's auto-run of "allowed") is the slow one.
     await userEvent.click(screen.getByRole("button", { name: /callback URL does not match/ }));
@@ -270,7 +272,7 @@ describe("USER_FEDERATION (3LO) tab", () => {
 describe("diagram tab", () => {
   it("draws the boxes from /api/diagram and Simulate highlights a step; Reset clears it", async () => {
     await ready();
-    await userEvent.click(screen.getByRole("tab", { name: "Diagram" }));
+    await userEvent.click(nav().getByRole("link", { name: "Diagram" }));
     expect(await screen.findByText("Agent (AgentCore Runtime)")).toBeInTheDocument();
     expect(calls.some((c) => c.url.startsWith("/api/diagram?vertical=retail"))).toBe(true);
     expect(screen.getByTestId("banner")).toBeInTheDocument();
@@ -282,7 +284,7 @@ describe("diagram tab", () => {
   });
   it("offers the three diagrams by name", async () => {
     await ready();
-    await userEvent.click(screen.getByRole("tab", { name: "Diagram" }));
+    await userEvent.click(nav().getByRole("link", { name: "Diagram" }));
     for (const name of ["USER_FEDERATION (3LO)", "On-behalf-of", "M2M gate"]) {
       await userEvent.click(await screen.findByRole("button", { name }));
       await waitFor(() => expect(calls.some((c) => c.url.startsWith("/api/diagram"))).toBe(true));
@@ -296,9 +298,9 @@ describe("diagram tab", () => {
 describe("talk track and presenter mode", () => {
   it("lists the talk track; presenter mode keeps the banner and shows the say-text; Esc leaves", async () => {
     await ready();
-    await userEvent.click(screen.getByRole("tab", { name: "Talk track" }));
+    await userEvent.click(nav().getByRole("link", { name: "Talk track" }));
     expect(screen.getByTestId("talk-track")).toHaveTextContent("Everything is simulated.");
-    await userEvent.click(screen.getByRole("tab", { name: "M2M gate" }));
+    await userEvent.click(nav().getByRole("link", { name: "M2M gate" }));
     await userEvent.keyboard("p");
     expect(await screen.findByTestId("presenter-say")).toHaveTextContent("Walk the five scenarios.");
     expect(screen.getByTestId("banner")).toHaveTextContent(/^SIMULATED/);
@@ -323,7 +325,7 @@ describe("talk track and presenter mode", () => {
   });
   it("presenter mode on the 3LO tab shows the 3LO entries", async () => {
     await ready();
-    await userEvent.click(screen.getByRole("tab", { name: "USER_FEDERATION (3LO)" }));
+    await userEvent.click(nav().getByRole("link", { name: "USER_FEDERATION (3LO)" }));
     await screen.findByTestId("three-lo-tab");
     await userEvent.keyboard("p");
     expect(await screen.findByTestId("presenter-say")).toHaveTextContent("Four shapes decide it.");
@@ -342,11 +344,11 @@ describe("banner visibility on every tab and in presenter mode", () => {
   it("is visible (not hidden, not display:none) on every tab and in presenter mode", async () => {
     await ready();
     for (const name of ["M2M gate", "USER_FEDERATION (3LO)", "On-behalf-of", "Diagram", "Talk track"]) {
-      await userEvent.click(screen.getByRole("tab", { name }));
+      await userEvent.click(nav().getByRole("link", { name }));
       expect(screen.getByTestId("banner")).toBeVisible();
       expect(screen.getByTestId("banner")).not.toHaveAttribute("hidden");
     }
-    await userEvent.click(screen.getByRole("tab", { name: "M2M gate" }));
+    await userEvent.click(nav().getByRole("link", { name: "M2M gate" }));
     await userEvent.keyboard("p");
     await screen.findByTestId("presenter-say");
     expect(screen.getByTestId("banner")).toBeVisible();
@@ -378,7 +380,7 @@ describe("links from the content pack: /#scenario-<id>", () => {
     window.location.hash = "#scenario-act-text";
     render(<App />);
     await waitFor(() => expect(screen.getByTestId("verdict")).toHaveTextContent("DENY"));
-    expect(screen.getByRole("tab", { name: "M2M gate" })).toHaveAttribute("aria-selected", "true");
+    expect(nav().getByRole("link", { name: "M2M gate" })).toHaveAttribute("aria-current", "page");
     expect(screen.getByRole("button", { name: /text "\{\}"/ })).toHaveAttribute("aria-pressed", "true");
     expect(screen.getByTestId("verdict").querySelector('[data-reason="parent_not_object"]')).not.toBeNull();
   });
@@ -399,12 +401,19 @@ describe("links from the content pack: /#scenario-<id>", () => {
 });
 
 describe("accessibility structure and display safety", () => {
-  it("has one main landmark, one banner status inside the header, and a tabpanel that is not the main", async () => {
+  it("has the shell bar first, then one main landmark whose first child is the banner status, and a panel that is not the main", async () => {
     await ready();
     expect(screen.getAllByRole("main")).toHaveLength(1);
-    expect(screen.getByRole("banner")).toContainElement(screen.getByTestId("banner"));
-    expect(screen.getByRole("tabpanel")).not.toBe(screen.getByRole("main"));
-    expect(screen.getByRole("main")).toContainElement(screen.getByRole("tabpanel"));
+    expect(screen.getByRole("banner")).toHaveClass("shell-bar");
+    expect(screen.getByRole("banner").nextElementSibling).toBe(screen.getByRole("main")); // shell bar first, then main
+    expect(screen.getByRole("main").firstElementChild).toBe(screen.getByTestId("banner")); // the banner is main's first child
+    expect(screen.getByRole("banner")).toContainElement(screen.getByRole("heading", { level: 1 }));
+    expect(screen.getByRole("banner")).toContainElement(screen.getByTestId("top-menu"));
+    expect(screen.getByRole("banner")).toContainElement(screen.getByRole("navigation", { name: "Lab sections" }));
+    expect(screen.getByTestId("mode-badge")).toHaveTextContent("Mock");
+    expect(nav().getAllByRole("link").filter((a) => a.getAttribute("aria-current") === "page")).toHaveLength(1);
+    expect(screen.getByTestId("panel")).not.toBe(screen.getByRole("main"));
+    expect(screen.getByRole("main")).toContainElement(screen.getByTestId("panel"));
   });
   it("control and bidi characters are shown as visible escapes", () => {
     expect(visible("a" + String.fromCharCode(0x202e) + "b" + String.fromCharCode(7) + "c" + String.fromCharCode(0x200b) + "d" + String.fromCharCode(0x85) + "e")).toBe("a" + String.fromCharCode(92) + "u202eb" + String.fromCharCode(92) + "u0007c" + String.fromCharCode(92) + "u200bd" + String.fromCharCode(92) + "u0085e");
@@ -413,7 +422,7 @@ describe("accessibility structure and display safety", () => {
 });
 
 const RELEASE_WORDS = /^Ping release claim, UNVERIFIED on our tenant/;
-const openTab = async (name) => { await userEvent.click(screen.getByRole("tab", { name })); };
+const openTab = async (name) => { await userEvent.click(nav().getByRole("link", { name })); };
 const pickVertical = async (v) => { await userEvent.selectOptions(screen.getByLabelText(/Vertical/), v); };
 const ALL_TABS = ["M2M gate", "USER_FEDERATION (3LO)", "On-behalf-of", "Diagram", "Talk track"];
 
@@ -452,7 +461,7 @@ describe("release tabs: banner, mode and presenter", () => {
     window.location.hash = "#obo";
     render(<App />);
     expect(await screen.findByTestId("obo-tab")).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "On-behalf-of" })).toHaveAttribute("aria-selected", "true");
+    expect(nav().getByRole("link", { name: "On-behalf-of" })).toHaveAttribute("aria-current", "page");
   });
 });
 
@@ -464,9 +473,9 @@ describe("render guard: changing the vertical on EVERY tab never blanks the page
       for (const v of ["health", "retail"]) {
         await pickVertical(v);
         expect(screen.getByTestId("banner")).toBeVisible();
-        expect(screen.getByRole("tablist")).toBeInTheDocument();
+        expect(screen.getByRole("navigation", { name: "Lab sections" })).toBeInTheDocument();
         expect(screen.queryByTestId("tab-crash")).toBeNull();
-        await waitFor(() => expect(screen.getByRole("tabpanel").textContent.length).toBeGreaterThan(20));
+        await waitFor(() => expect(screen.getByTestId("panel").textContent.length).toBeGreaterThan(20));
         expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("AgentCore PingOne LAB");
       }
     }
@@ -477,7 +486,7 @@ describe("render guard: changing the vertical on EVERY tab never blanks the page
       override.obo = async (url) => (url === "/api/obo/evaluate" ? { ok: true, status: 200, json: async () => ({}) } : { ok: true, status: 200, json: async () => OBO_STORY }); // an answer with no result
       await ready(); await openTab("On-behalf-of");
       expect(await screen.findByTestId("tab-crash")).toHaveTextContent("could not be drawn");
-      expect(screen.getByTestId("banner")).toBeVisible(); expect(screen.getByTestId("release-banner")).toBeVisible(); expect(screen.getByRole("tablist")).toBeInTheDocument();
+      expect(screen.getByTestId("banner")).toBeVisible(); expect(screen.getByTestId("release-banner")).toBeVisible(); expect(screen.getByRole("navigation", { name: "Lab sections" })).toBeInTheDocument();
       await openTab("M2M gate");
       expect(screen.queryByTestId("tab-crash")).toBeNull(); expect(await screen.findByTestId("verdict")).toBeInTheDocument();
       override.obo = undefined; await openTab("On-behalf-of");

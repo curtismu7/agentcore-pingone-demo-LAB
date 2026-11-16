@@ -71,7 +71,7 @@ function CustomEditor({ scenario, rule, onResult, resetSignal }) {
       <textarea id="custom-token" rows={10} value={tokenText} onChange={(e) => setTokenText(e.target.value)} spellCheck={false} />
       <label htmlFor="custom-rule">Rule (JSON, requiredClaims: path + equals)</label>
       <textarea id="custom-rule" rows={7} value={ruleText} onChange={(e) => setRuleText(e.target.value)} spellCheck={false} />
-      <button type="button" onClick={run}>Evaluate custom</button>
+      <button type="button" className="primary" onClick={run}>Evaluate custom</button>
       {error && <p className="field-error" role="alert" data-testid="custom-error">{error}</p>}
     </section>
   );

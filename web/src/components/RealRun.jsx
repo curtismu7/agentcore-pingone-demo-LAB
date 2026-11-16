@@ -110,7 +110,7 @@ export default function RealRun({ info }) {
         </p>
       )}
       <div className="actions">
-        <button type="button" className="btn" disabled={busy || !realOn} onClick={() => runM2m("orders:read")} data-testid="real-run-read">
+        <button type="button" className="btn primary" disabled={busy || !realOn} onClick={() => runM2m("orders:read")} data-testid="real-run-read">
           {busy ? "Exchanging..." : "Run live M2M (orders:read)"}
         </button>
         <button type="button" className="btn" disabled={busy || !realOn} onClick={() => runM2m("orders:write")} data-testid="real-run-write">
