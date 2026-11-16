@@ -12,6 +12,7 @@ export default class ErrorBoundary extends Component {
     return (
       <div className="app-error" role="alert" data-testid={this.props.testId || "tab-crash"}>
         <p>{this.props.message || "This tab could not be drawn. Nothing was lost: the rest of the lab still works."}</p>
+        {/* ui-pattern: allow P9 Try again is error recovery that shows only after a tab crashed, not the page action; making it primary would put two primaries on every page that has its own */}
         <button type="button" onClick={() => this.setState({ failed: false })}>Try again</button>
       </div>
     );
