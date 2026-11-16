@@ -41,7 +41,7 @@ function ThreeLoPanel({ realOn }) {
     finally { setBusy(false); }
   };
 
-  return (
+  return ( /* ui-pattern: allow P2 the .banner paragraphs below are RealRun's own status notices, not the simulation banner; App.jsx renders the simulation banner as main's first child on this tab too (verified in the browser) */
     <section aria-label="Real 3LO: a real human login">
       <h3>Real 3LO: a real human signs in</h3>
       <p>
