@@ -2,6 +2,7 @@
 
 ## 0.1.0 (2026-11-04)
 
+- Verification mark in the header: the shared `VerifyMark` (vendored from AI-DEMO-Standalone `shared/verify-mark`, byte for byte, pinned) shows this lab's Verified / In progress mark from the demo shelf, beside the Shelf link in the top menu. It reads the same `GET /api/shelf` call the Shelf link makes, so it shows through the lab-proxy and nothing when the lab is opened on its own port, when the shelf has no mark for it, or when the shelf is unreachable.
 - First release of `agentcore-pingone-demo-LAB`, scaffolded on the fleet's -LAB standard (copied from a sibling repo's packaging; no code imported).
 - M2M gate: the agent's own PingOne token via AgentCore Identity (`oauth2_flow=M2M`, client_credentials, a verified shape) against a downstream required-claims rule; five scenarios including the `act`-emitted-as-text-`"{}"` trap.
 - USER_FEDERATION (3LO): the agent starts a real human login through PingOne (pi.flow, code to callback, exchange); seven scenarios, each breaking one of the four measured shapes (exact callback match, `sessionUri` pre-registration, POST token-endpoint auth, `GetResourceOauth2Token` IAM) with per-step check states and the minted token where one exists.

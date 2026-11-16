@@ -9,6 +9,7 @@ import RealRun from "./components/RealRun";
 import { getJson, resetWorkspace, requestModeSwitch } from "./api";
 import { NO_LIVE, RELEASE_BANNER } from "./releaseText";
 import ShelfLink from "./components/ShelfLink.jsx";
+import VerifyMark from "./components/VerifyMark.jsx";
 import TopMenu, { applyFontSize } from "./top-menu/TopMenu.jsx";
 
 const THEME_KEY = "agentcore.theme";
@@ -147,6 +148,7 @@ export default function App() {
               onReset={reset}
             >
               <ShelfLink />
+              <VerifyMark id="agentcore-pingone-demo-lab" />
             </TopMenu>
           </div>
         </div>
