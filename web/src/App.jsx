@@ -11,6 +11,8 @@ import { NO_LIVE, RELEASE_BANNER } from "./releaseText";
 import ShelfLink from "./components/ShelfLink.jsx";
 import VerifyMark from "./components/VerifyMark.jsx";
 import TopMenu, { applyFontSize } from "./top-menu/TopMenu.jsx";
+import TalkTrackDialog from "./talk-track/TalkTrackDialog.jsx";
+import talkMd from "../../docs/talk-track.md?raw";
 
 const THEME_KEY = "agentcore.theme";
 const THEMES = [["auto", "Auto"], ["light", "Light"], ["dark", "Dark"]];
@@ -47,6 +49,15 @@ const hashParts = () => {
 
 export default function App() {
   const [vertical, setVertical] = useState("retail");
+  const [talkOpen, setTalkOpen] = useState(false);
+  const talkSteps = (() => {
+    const steps = []; let n = 0;
+    for (const line of talkMd.split("\n")) {
+      const m = line.match(/^\d+\.\s+(?:"(.+?)"|\*\*(.+?)\.\*\*\s*(.*))$/);
+      if (m) { n += 1; steps.push({ id: `s${n}`, title: (m[1] || m[2]).slice(0, 60), say: m[1] || m[3] }); }
+    }
+    return steps.length ? steps : [{ id: "s1", title: "Talk track", say: talkMd.slice(0, 600) }];
+  })();
   const [story, setStory] = useState(null);
   const [info, setInfo] = useState(undefined); // undefined = loading, null = failed
   const [error, setError] = useState(null);
@@ -133,6 +144,7 @@ export default function App() {
           theme={{ value: theme, onChange: pickTheme }}
           fontSize={{ value: fontStep, onChange: setFontStep }}
           present={{ active: presenter, onToggle: () => setPresenter((v) => !v), label: "Presenter (P)" }}
+          talkTrack={{ active: talkOpen, onToggle: () => setTalkOpen((v) => !v) }}
           help={{ href: "https://github.com/curtismu7/agentcore-pingone-demo-LAB#readme" }}
           version={info?.version || null}
           onReset={reset}
@@ -166,6 +178,8 @@ export default function App() {
           )}
           </ErrorBoundary>
         </div>
+      <TalkTrackDialog isOpen={talkOpen} onClose={() => setTalkOpen(false)} talk={talkSteps} />
+
       </main>
     </div>
   );
