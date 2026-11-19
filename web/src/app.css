@@ -31,7 +31,11 @@ textarea { width: 100%; display: block; font-family: var(--font-mono); font-size
 .release-tab input[type="text"], .gate input[type="text"] { display: block; width: 100%; max-width: 46ch; margin: 4px 0 8px; }
 button[aria-disabled="true"] { opacity: 0.75; cursor: not-allowed; }
 button.primary[aria-disabled="true"] { opacity: 0.88; }
-.gate, .posture { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); align-items: start; }
+.gate { display: flex; flex-direction: column; gap: 12px; }
+.posture { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); align-items: start; }
+.duo { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; align-items: start; }
+.step-num { display: inline-grid; place-items: center; min-width: 1.4rem; height: 1.4rem; border-radius: 999px; background: var(--accent-gradient); color: var(--on-accent); font: 700 0.75rem var(--font-mono); margin-right: 0.5em; vertical-align: 2px; }
+@media (max-width: 900px) { .duo { grid-template-columns: 1fr; } }
 .gate > *, .posture > * { min-width: 0; }
 .posture > .panel--warn { grid-column: 1 / -1; }
 .panel { border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 12px 14px; min-width: 0; }
