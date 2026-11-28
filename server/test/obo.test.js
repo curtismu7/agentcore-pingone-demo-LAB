@@ -11,7 +11,7 @@ const cast = DEFAULT_CAST;
 const cfg = { now: LAB_NOW, gatewayAud: fillDeep(GATEWAY_AUD, cast), trustedIssuer: fillDeep(TRUSTED_ISSUER, cast), exchangeClientId: OBO_CONFIG.ClientID, maxActDepth: MAX_ACT_DEPTH, lifetime: 300 };
 const backends = BACKENDS.map((b) => ({ id: b.id, resource: fillDeep(b.resource, cast), scopes: b.scopes }));
 const ORDERS = backends[0].resource; const REPORTS = backends[1].resource;
-const claims = (extra = {}) => ({ iss: cfg.trustedIssuer, sub: 'user-1001', aud: cfg.gatewayAud, client_id: 'orders-agent', scope: 'orders:read orders:write', iat: LAB_NOW - 300, exp: LAB_NOW + 300, jti: 'j-1', ...extra });
+const claims = (extra = {}) => ({ iss: cfg.trustedIssuer, sub: 'user-1001', aud: cfg.gatewayAud, client_id: 'passenger-chat-agent', scope: 'orders:read orders:write', iat: LAB_NOW - 300, exp: LAB_NOW + 300, jti: 'j-1', ...extra });
 const run = ({ inboundClaims = claims(), tamper, resource = ORDERS, scope = ['orders:read'], seen = new Set(), c = cfg } = {}) => {
   const inbound = issueMockToken(inboundClaims);
   if (tamper) inbound.claims = { ...inbound.claims, ...tamper };
@@ -41,7 +41,7 @@ test('the exchanged token is computed: aud is the backend, sub the user, act nam
   assert.equal(result.decision, 'allow');
   assert.equal(ex.claims.aud, ORDERS);
   assert.equal(ex.claims.sub, 'user-1001');
-  assert.deepEqual(ex.claims.act, { sub: 'orders-agent' });
+  assert.deepEqual(ex.claims.act, { sub: 'passenger-chat-agent' });
   assert.equal(ex.claims.scope, 'orders:read');
   assert.notEqual(canonical(ex.claims), canonical(inbound.claims));
   assert.ok(signatureValid(ex));
@@ -60,8 +60,8 @@ test('the backend accepts the exchanged token and rejects the caller\'s own (com
 
 test('the act claim chain: an earlier actor is nested beneath the caller, one level per hop', () => {
   const { result } = run({ inboundClaims: claims({ act: { sub: 'planner-agent' } }) });
-  assert.deepEqual(result.exchanged.claims.act, { sub: 'orders-agent', act: { sub: 'planner-agent' } });
-  assert.deepEqual(actChain(result.exchanged.claims.act), { bad: false, chain: ['orders-agent', 'planner-agent'] });
+  assert.deepEqual(result.exchanged.claims.act, { sub: 'passenger-chat-agent', act: { sub: 'planner-agent' } });
+  assert.deepEqual(actChain(result.exchanged.claims.act), { bad: false, chain: ['passenger-chat-agent', 'planner-agent'] });
   const two = run({ inboundClaims: claims({ act: { sub: 'a', act: { sub: 'b' } } }) });
   assert.equal(two.result.decision, 'allow');
   assert.equal(actChain(two.result.exchanged.claims.act).chain.length, 3);
@@ -220,7 +220,7 @@ test('the backend view is computed: the exchanged token is accepted, the origina
   assert.equal(ok.backend.exchanged.accepted, true);
   assert.equal(ok.backend.original.accepted, false);
   assert.equal(ok.backend.differs, true);
-  assert.match(ok.backend.logWithOnBehalfOf, /user=user-1001 actor=orders-agent > planner-agent/);
+  assert.match(ok.backend.logWithOnBehalfOf, /user=user-1001 actor=passenger-chat-agent > planner-agent/);
   assert.equal(evaluateOboScenario(st, 'expired', {}, cast).backend, null);
 });
 
@@ -256,6 +256,6 @@ test('GET /api/obo returns the story with every row tagged, no unfilled token, t
     assert.equal(j.config.Resource.includes('contoso'), true);
     assert.equal(j.why.slide, 48);
     assert.ok(!('ClientSecret' in j.config) && !('PrivateKeyPEM' in j.config), 'write-only fields are never held');
-    assert.equal((await call(url, 'GET', '/api/obo?vertical=__proto__')).json.config.Resource.includes('northwind'), true, 'unknown vertical keeps the default');
+    assert.equal((await call(url, 'GET', '/api/obo?vertical=__proto__')).json.config.Resource.includes('airguard'), true, 'unknown vertical keeps the default');
   });
 });

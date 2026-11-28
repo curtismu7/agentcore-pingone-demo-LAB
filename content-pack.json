@@ -23,7 +23,7 @@
     {
       "id": "act-claim",
       "term": "act claim (actor)",
-      "definition": "A token claim naming the party acting on behalf of the subject (RFC 8693). In this lab it must be an OBJECT with a sub, such as {\"sub\": \"orders-agent\"}. The text \"{}\" is not an object and act.sub then does not exist.",
+      "definition": "A token claim naming the party acting on behalf of the subject (RFC 8693). In this lab it must be an OBJECT with a sub, such as {\"sub\": \"passenger-chat-agent\"}. The text \"{}\" is not an object and act.sub then does not exist.",
       "aliases": [
         "act.sub",
         "RFC 8693"
@@ -176,7 +176,7 @@
     {
       "id": "why-obo",
       "label": "Why it matters: on-behalf-of (Ping claims, slide 48)",
-      "description": "Per Ping's deck (slide 48), UNVERIFIED on our tenant. Challenge: A tool name and arguments cannot say what was asked for, whether the agent was ever meant to do it, or whether it normally behaves this way. Policy built on the request alone cannot tell misuse from an agent doing its job. Technical value: Three separable signals: deterministic intent patterns and purpose declarations refuse hard; learned behaviour baselines drive alerts and approval. On-behalf-of gives the backend a token issued to it, with the original caller named in act. Business value: The enforceable declaration \"this agent exists to reconcile invoices\" unblocks unattended agents in processes that could not otherwise approve them.",
+      "description": "Per Ping's deck (slide 48), UNVERIFIED on our tenant. Challenge: A tool name and arguments cannot say what was asked for, whether the agent was ever meant to do it, or whether it normally behaves this way. Policy built on the request alone cannot tell misuse from an agent doing its job. Technical value: Three separable signals: deterministic intent patterns and purpose declarations refuse hard; learned behaviour baselines drive alerts and approval. On-behalf-of gives the backend a token issued to it, with the original caller named in act. Business value: The enforceable declaration \"this agent exists to rebook disrupted passengers\" unblocks unattended agents in processes that could not otherwise approve them.",
       "group": "concept",
       "action": {
         "type": "route",

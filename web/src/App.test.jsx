@@ -12,7 +12,7 @@ const SCEN = [
   { id: "act-text", title: 'Denied: act emitted as the text "{}"', expected: "deny", lesson: "The trap.", token: TOKEN({ client_id: "a", act: "{}" }) },
 ];
 const STORY = {
-  title: "t", intro: "intro text", banner: "SIMULATED, MOCK mode: a mock token", tokenLabel: "MOCK-ISSUED teaching token", verticals: ["retail", "health"],
+  title: "t", intro: "intro text", banner: "SIMULATED, MOCK mode: a mock token", tokenLabel: "MOCK-ISSUED teaching token", verticals: ["airlines", "retail", "health"],
   rule: { name: "Registered agent only (mock)", appliesTo: "Agent API", note: "n", requiredClaims: [{ path: "client_id", equals: "a" }, { path: "act.sub", equals: "a" }] },
   scenarios: SCEN, cast: { castAgentId: "a" },
   facts: [{ id: "m2m-shape", status: "measured", text: "M2M returns the accessToken directly.", source: "skill" }, { id: "x", status: "inferred", text: "The rule is ours.", source: "this lab" }],
@@ -115,6 +115,11 @@ const nav = () => within(screen.getByRole("navigation", { name: "Lab sections" }
 const ready = async () => { render(<App />); await screen.findByText("Allowed: act.sub matches"); await screen.findByTestId("verdict"); };
 
 describe("shell", () => {
+  it("the airlines vertical (AirGuard Airlines) is the default: selected in the picker and asked for first", async () => {
+    await ready();
+    expect(screen.getByTestId("vertical-select")).toHaveValue("airlines");
+    expect(calls.find((c) => c.url.startsWith("/api/scenarios")).url).toBe("/api/scenarios?vertical=airlines");
+  });
   it("shows the banner, the mode, and sends X-Workspace on API calls", async () => {
     await ready();
     expect(screen.getByTestId("banner")).toHaveTextContent(/^SIMULATED, MOCK mode/);
@@ -274,7 +279,7 @@ describe("diagram tab", () => {
     await ready();
     await userEvent.click(nav().getByRole("link", { name: "Diagram" }));
     expect(await screen.findByText("Agent (AgentCore Runtime)")).toBeInTheDocument();
-    expect(calls.some((c) => c.url.startsWith("/api/diagram?vertical=retail"))).toBe(true);
+    expect(calls.some((c) => c.url.startsWith("/api/diagram?vertical=airlines"))).toBe(true);
     expect(screen.getByTestId("banner")).toBeInTheDocument();
     expect(screen.getByLabelText(/Step time/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /simulate/i }));
@@ -506,7 +511,7 @@ describe("on-behalf-of tab", () => {
     expect(screen.getByTestId("obo-backend")).toHaveTextContent(/Exchanged token\s*accepted/);
     expect(screen.getByTestId("obo-backend")).toHaveTextContent(/Caller's own token\s*refused/);
     expect(screen.getByTestId("obo-hops")).toHaveTextContent(/POST https:\/\/gateway\.example\/mcp/);
-    expect(calls.filter((c) => c.url === "/api/obo/evaluate").every((c) => c.opts.headers["x-workspace"] && JSON.parse(c.opts.body).vertical === "retail")).toBe(true);
+    expect(calls.filter((c) => c.url === "/api/obo/evaluate").every((c) => c.opts.headers["x-workspace"] && JSON.parse(c.opts.body).vertical === "airlines")).toBe(true);
   });
   it("a refused scenario says which check refused and which were not reached, and no token is minted", async () => {
     await openObo();

@@ -58,3 +58,13 @@ test('the USER_FEDERATION card exists and the pack keeps catalog D114', () => {
   assert.ok(pack.glossary.find((g) => g.id === 'user-federation'));
   assert.equal(pack.demo.catalog, 'D114');
 });
+
+test('the default pack (builder and committed file) carries no retired brand or agent name', () => {
+  const RETIRED = ['Northwind', 'Contoso', 'Fabrikam', 'Harbor', 'Vellum', 'Meridian Air', 'orders-agent', 'claims-agent', 'payments-agent'];
+  for (const [label, pack] of [['built', buildPack()], ['committed', committed]]) {
+    const text = JSON.stringify(pack).toLowerCase();
+    assert.deepEqual(RETIRED.filter((w) => text.includes(w.toLowerCase())), [], label);
+  }
+  const act = committed.glossary.find((g) => g.id === 'act-claim').definition;
+  assert.match(act, /"sub": "passenger-chat-agent"/);
+});

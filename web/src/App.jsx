@@ -50,7 +50,7 @@ const hashParts = () => {
 };
 
 export default function App() {
-  const [vertical, setVertical] = useState("retail");
+  const [vertical, setVertical] = useState("airlines");
   const [talkOpen, setTalkOpen] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
   const talkSteps = (() => {
@@ -144,7 +144,7 @@ export default function App() {
         </nav>
         <TopMenu
           mode={info ? { value: info.source === "real" ? "real" : "mock", onChange: onMode, realAvailable: info.realAvailable === true, realHint: info.realReason || "Real mode is not available." } : undefined}
-          vertical={{ value: vertical, onChange: setVertical, options: story ? story.verticals : ["retail"] }}
+          vertical={{ value: vertical, onChange: setVertical, options: story ? story.verticals : ["airlines"] }}
           theme={{ value: theme, onChange: pickTheme }}
           fontSize={{ value: fontStep, onChange: setFontStep }}
           present={{ active: presenter, onToggle: () => setPresenter((v) => !v), label: "Presenter (P)" }}
