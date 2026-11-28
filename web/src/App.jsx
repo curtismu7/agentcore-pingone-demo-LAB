@@ -12,6 +12,8 @@ import ShelfLink from "./components/ShelfLink.jsx";
 import VerifyMark from "./components/VerifyMark.jsx";
 import TopMenu, { applyFontSize } from "./top-menu/TopMenu.jsx";
 import TalkTrackDialog from "./talk-track/TalkTrackDialog.jsx";
+import HelpDialog from "./help-dialog/HelpDialog.jsx";
+import { HELP_SECTIONS } from "./helpContent";
 import talkMd from "../../docs/talk-track.md?raw";
 
 const THEME_KEY = "agentcore.theme";
@@ -50,6 +52,7 @@ const hashParts = () => {
 export default function App() {
   const [vertical, setVertical] = useState("retail");
   const [talkOpen, setTalkOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const talkSteps = (() => {
     const steps = []; let n = 0;
     for (const line of talkMd.split("\n")) {
@@ -145,7 +148,7 @@ export default function App() {
           fontSize={{ value: fontStep, onChange: setFontStep }}
           present={{ active: presenter, onToggle: () => setPresenter((v) => !v), label: "Presenter (P)" }}
           talkTrack={{ active: talkOpen, onToggle: () => setTalkOpen((v) => !v) }}
-          help={{ href: "https://github.com/curtismu7/agentcore-pingone-demo-LAB#readme" }}
+          help={{ onClick: () => setHelpOpen(true), title: "What this lab is, and what is simulated" }}
           version={info?.version || null}
           onReset={reset}
         >
@@ -179,6 +182,7 @@ export default function App() {
           </ErrorBoundary>
         </div>
       <TalkTrackDialog isOpen={talkOpen} onClose={() => setTalkOpen(false)} talk={talkSteps} />
+      <HelpDialog isOpen={helpOpen} onClose={() => setHelpOpen(false)} sections={HELP_SECTIONS} docsUrl="https://github.com/curtismu7/agentcore-pingone-demo-LAB#readme" />
 
       </main>
     </div>
