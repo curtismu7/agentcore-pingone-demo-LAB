@@ -6,6 +6,7 @@ import { REFIT_EVENT, useFitOnResize } from "../hooks/useFitOnResize";
 import { ArrowNoLabel, EdgeLabels, FitOpen, Passport, PassportActions } from "../diagram-kit/DiagramKit.jsx";
 import { boxPassport, sidePoint } from "../diagram-kit/diagramKit.js";
 import "../diagram-kit/diagram-kit.css";
+import Json from "./Json";
 
 const FIT = { padding: 0.16 }; // room for the loops a reply arrow draws below its boxes
 // At phone width fitting the whole wide diagram makes the text unreadable, so the view is held at 0.8 on the first two boxes (node text is enlarged in app.css);
@@ -23,7 +24,7 @@ function Box({ data }) {
         </span>
       ))}
       {data.label}
-      {data.passport && <Passport p={data.passport} />}
+      {data.passport && <Passport p={data.passport} JsonView={Json} />}
     </div>
   );
 }
@@ -125,7 +126,7 @@ export default function PatternDiagram({ pattern, resetSignal = 0 }) {
   const [positions, setPositions] = useState(initial);
   const stepper = useDiagramStepper(pattern.steps.length);
   // The pattern as a graph (boxes and arrows) for the box details; a box's kind is its group.
-  const graph = useMemo(() => ({ nodes: pattern.nodes.map((n) => ({ id: n.id, label: n.label, group: n.kind })), edges: pattern.steps.map((st, i) => ({ source: st.from, target: st.to, label: `${i + 1}. ${st.label}` })) }), [pattern]);
+  const graph = useMemo(() => ({ nodes: pattern.nodes.map((n) => ({ id: n.id, label: n.label, group: n.kind })), edges: pattern.steps.map((st, i) => ({ id: `e${i}`, source: st.from, target: st.to, label: `${i + 1}. ${st.label}`, hop: st.hop ?? null })) }), [pattern]);
   const [open, setOpen] = useState(() => { const box = new URLSearchParams(window.location.search).get("box"); return box && pattern.nodes.some((n) => n.id === box) ? box : null; }); // a shared link's box
   const onMove = useCallback((id, p) => setPositions((cur) => ({ ...cur, [id]: { x: p.x, y: p.y } })), []);
   const step = stepper.step >= 0 ? pattern.steps[stepper.step] : null;
