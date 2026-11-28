@@ -23,7 +23,7 @@
     {
       "id": "act-claim",
       "term": "act claim (actor)",
-      "definition": "A token claim naming the party acting on behalf of the subject (RFC 8693). In this lab it must be an OBJECT with a sub, such as {\"sub\": \"orders-agent\"}. The text \"{}\" is not an object and act.sub then does not exist.",
+      "definition": "A token claim naming the party acting on behalf of the subject (RFC 8693). In this lab it must be an OBJECT with a sub, such as {\"sub\": \"passenger-chat-agent\"}. The text \"{}\" is not an object and act.sub then does not exist.",
       "aliases": [
         "act.sub",
         "RFC 8693"
