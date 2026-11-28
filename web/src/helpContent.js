@@ -13,7 +13,7 @@ export const HELP_SECTIONS = [
     body: [
       "The nav tabs are: \"M2M gate\", \"USER_FEDERATION (3LO)\", \"On-behalf-of\", \"Real\", \"Diagram\", \"Talk track\". Each tab shows a scenario list; pick one and press its Run control to see the checks pass or fail and why.",
       "In the header: the Mock/Real mode toggle, the vertical picker (e.g. retail), the theme and font-size menus, \"Presenter (P)\" (the P key also toggles it), the talk-track button, Reset, and Help.",
-      "The banner under the header always names the current mode. On the On-behalf-of tab a second release banner appears on top of it."
+      "The page opens on a MOCK or REAL modal that names the current mode (once per mode per browser session; the Mock/Real switch and the header badge keep showing it). On the On-behalf-of tab a release banner appears on top of the page."
     ]
   },
   {
@@ -22,6 +22,6 @@ export const HELP_SECTIONS = [
   },
   {
     heading: "Reset and privacy",
-    body: "Reset clears your workspace's evaluations, restores the modelled gateway, and puts the diagram boxes back. Your typed text and runs stay in this browser's workspace; nothing is sent anywhere the banner does not name."
+    body: "Reset clears your workspace's evaluations, restores the modelled gateway, and puts the diagram boxes back. Your typed text and runs stay in this browser's workspace; nothing is sent anywhere the MOCK or REAL modal does not name."
   }
 ];

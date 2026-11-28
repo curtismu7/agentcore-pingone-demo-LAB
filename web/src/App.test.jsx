@@ -1,8 +1,8 @@
-import { describe, expect, it, beforeEach, vi } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { visible } from "./safeText";
 import userEvent from "@testing-library/user-event";
-import App, { BANNER_UNKNOWN } from "./App";
+import App, { MODE_LINES } from "./App";
 import { labelOffsets } from "./components/PatternDiagram";
 import { setJsonView } from "./components/JsonPane.jsx";
 
@@ -108,16 +108,18 @@ function mockFetch() {
     return json({}, 404);
   });
 }
-beforeEach(() => { override = {}; mockFetch(); window.location.hash = ""; setJsonView("form"); });
+beforeEach(() => { override = {}; mockFetch(); window.location.hash = ""; setJsonView("form"); sessionStorage.clear(); });
+afterEach(() => sessionStorage.clear());
 
 // The lab sections are the shell-bar's pill nav links (STANDALONE-UI-PATTERNS section 1); the current one has aria-current="page".
 const nav = () => within(screen.getByRole("navigation", { name: "Lab sections" }));
 const ready = async () => { render(<App />); await screen.findByText("Allowed: act.sub matches"); await screen.findByTestId("verdict"); };
 
 describe("shell", () => {
-  it("shows the banner, the mode, and sends X-Workspace on API calls", async () => {
+  it("opens on the MOCK modal (simulated, nothing calls a real tenant), shows the mode, and sends X-Workspace on API calls", async () => {
     await ready();
-    expect(screen.getByTestId("banner")).toHaveTextContent(/^SIMULATED, MOCK mode/);
+    expect(screen.getByTestId("mode-modal")).toHaveAttribute("data-mode", "mock");
+    expect(screen.getByTestId("mode-modal")).toHaveTextContent(/^MOCK.*simulated.*Nothing here calls a real gateway, identity provider, AWS account or tenant\./);
     expect(screen.getByTestId("mode-select")).toHaveValue("mock");
     const ev = calls.find((c) => c.url === "/api/evaluate");
     expect(ev.opts.headers["x-workspace"]).toMatch(/^[a-z0-9-]{1,40}$/);
@@ -140,7 +142,7 @@ describe("Mock | Real toggle (every page, rule 19)", () => {
     }
     await userEvent.selectOptions(screen.getByTestId("mode-select"), "real"); // a disabled option does nothing
     expect(screen.getByTestId("mode-select")).toHaveValue("mock");
-    expect(screen.getByTestId("banner")).toHaveAttribute("data-state", "mock");
+    expect(screen.getByTestId("mode-modal")).toHaveAttribute("data-mode", "mock");
   });
   it("pressing Mock when already on Mock makes no /api/mode request", async () => {
     await ready();
@@ -275,7 +277,6 @@ describe("diagram tab", () => {
     await userEvent.click(nav().getByRole("link", { name: "Diagram" }));
     expect(await screen.findByText("Agent (AgentCore Runtime)")).toBeInTheDocument();
     expect(calls.some((c) => c.url.startsWith("/api/diagram?vertical=retail"))).toBe(true);
-    expect(screen.getByTestId("banner")).toBeInTheDocument();
     expect(screen.getByLabelText(/Step time/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: /simulate/i }));
     expect(await screen.findByTestId("pattern-now")).toHaveTextContent("Step 1: Bearer token");
@@ -296,19 +297,19 @@ describe("diagram tab", () => {
 });
 
 describe("talk track and presenter mode", () => {
-  it("lists the talk track; presenter mode keeps the banner and shows the say-text; Esc leaves", async () => {
+  it("lists the talk track; presenter mode keeps the mode modal and shows the say-text; Esc leaves", async () => {
     await ready();
     await userEvent.click(nav().getByRole("link", { name: "Talk track" }));
     expect(screen.getByTestId("talk-track")).toHaveTextContent("Everything is simulated.");
     await userEvent.click(nav().getByRole("link", { name: "M2M gate" }));
     await userEvent.keyboard("p");
     expect(await screen.findByTestId("presenter-say")).toHaveTextContent("Walk the five scenarios.");
-    expect(screen.getByTestId("banner")).toHaveTextContent(/^SIMULATED/);
+    expect(screen.getByTestId("mode-modal")).toHaveTextContent(/^MOCK/);
     expect(document.querySelector(".app--presenter")).not.toBeNull();
     await userEvent.keyboard("{Escape}");
     expect(document.querySelector(".app--presenter")).toBeNull();
   });
-  it("P ignores modifier keys (Cmd/Ctrl/Alt+P is the browser's) and keystrokes in a text box; Esc keeps the banner", async () => {
+  it("P ignores modifier keys (Cmd/Ctrl/Alt+P is the browser's) and keystrokes in a text box; Esc keeps the mode modal", async () => {
     await ready();
     await userEvent.keyboard("{Control>}p{/Control}{Meta>}p{/Meta}{Alt>}p{/Alt}");
     expect(document.querySelector(".app--presenter")).toBeNull();
@@ -318,10 +319,10 @@ describe("talk track and presenter mode", () => {
     await userEvent.click(document.body);
     await userEvent.keyboard("P");
     expect(document.querySelector(".app--presenter")).not.toBeNull();
-    expect(screen.getByTestId("banner")).toBeVisible();
+    expect(screen.getByTestId("mode-modal")).toBeVisible();
     await userEvent.keyboard("{Escape}");
     expect(document.querySelector(".app--presenter")).toBeNull();
-    expect(screen.getByTestId("banner")).toBeVisible();
+    expect(screen.getByTestId("mode-modal")).toBeVisible();
   });
   it("presenter mode on the 3LO tab shows the 3LO entries", async () => {
     await ready();
@@ -340,38 +341,61 @@ describe("diagram edge labels", () => {
   });
 });
 
-describe("banner visibility on every tab and in presenter mode", () => {
-  it("is visible (not hidden, not display:none) on every tab and in presenter mode", async () => {
+describe("the mode modal: shown on every tab and in presenter mode, in every state the old banner had, and no simulation banner left", () => {
+  it("is visible on every tab and in presenter mode, and no simulation banner element is on the page", async () => {
     await ready();
     for (const name of ["M2M gate", "USER_FEDERATION (3LO)", "On-behalf-of", "Diagram", "Talk track"]) {
       await userEvent.click(nav().getByRole("link", { name }));
-      expect(screen.getByTestId("banner")).toBeVisible();
-      expect(screen.getByTestId("banner")).not.toHaveAttribute("hidden");
+      expect(screen.getByTestId("mode-modal")).toBeVisible();
+      expect(screen.queryByTestId("banner")).toBeNull();
+      expect(document.querySelector("main > .banner, [data-testid=banner]")).toBeNull();
     }
     await userEvent.click(nav().getByRole("link", { name: "M2M gate" }));
     await userEvent.keyboard("p");
     await screen.findByTestId("presenter-say");
-    expect(screen.getByTestId("banner")).toBeVisible();
+    expect(screen.getByTestId("mode-modal")).toBeVisible();
   });
-  it("until /api/scenarios answers the banner is the fixed MOCK text, never blank and never claiming anything else", async () => {
+  it("closes on Got it and stays closed after a same-session remount", async () => {
+    const { unmount } = render(<App />);
+    fireEvent.click(await screen.findByTestId("mode-modal-ok"));
+    expect(screen.queryByTestId("mode-modal")).toBeNull();
+    unmount();
+    await ready();
+    expect(screen.queryByTestId("mode-modal")).toBeNull();
+  });
+  it("until /api/scenarios answers the modal is the fixed MOCK text, never blank and never claiming anything else", async () => {
     override.scenarios = () => new Promise(() => {});
     render(<App />);
-    expect(screen.getByTestId("banner")).toHaveTextContent(BANNER_UNKNOWN);
-    expect(screen.getByTestId("banner")).toBeVisible();
-    expect(BANNER_UNKNOWN).toMatch(/^SIMULATED, MOCK mode/);
+    expect(screen.getByTestId("mode-modal")).toHaveTextContent(MODE_LINES.mock);
+    expect(screen.getByTestId("mode-modal")).toHaveAttribute("data-mode", "mock");
+    expect(MODE_LINES.mock).toMatch(/^Everything on this page is simulated/);
   });
-  it("while nothing has answered, and when both calls fail, the fixed banner stays visible", async () => {
+  it("while nothing has answered, and when both calls fail, the modal says MOCK", async () => {
     override.info = () => new Promise(() => {});
     override.scenarios = () => new Promise(() => {});
     const { unmount } = render(<App />);
-    expect(screen.getByTestId("banner")).toHaveTextContent(BANNER_UNKNOWN);
+    expect(screen.getByTestId("mode-modal")).toHaveTextContent(MODE_LINES.mock);
     unmount();
     override.info = async () => ({ ok: false, status: 500, json: async () => ({}) });
     override.scenarios = async () => ({ ok: false, status: 500, json: async () => ({}) });
     render(<App />);
     expect(await screen.findByRole("alert")).toHaveTextContent("Could not load the lab");
-    expect(screen.getByTestId("banner")).toHaveTextContent(BANNER_UNKNOWN);
-    expect(screen.getByTestId("banner")).toBeVisible();
+    expect(screen.getByTestId("mode-modal")).toHaveTextContent(MODE_LINES.mock);
+    expect(screen.getByTestId("mode-modal")).toHaveAttribute("data-mode", "mock");
+  });
+  it("Real: MOCK until /api/info answers, then REAL with the line that says only the Real tab's token is live", async () => {
+    let release;
+    const held = new Promise((r) => { release = r; });
+    override.info = () => held;
+    render(<App />);
+    expect(await screen.findByTestId("mode-modal")).toHaveAttribute("data-mode", "mock");
+    release({ ok: true, status: 200, json: async () => ({ source: "real", realAvailable: true, realReason: "" }) });
+    await waitFor(() => expect(screen.getByTestId("mode-modal")).toHaveAttribute("data-mode", "real"));
+    const modal = screen.getByTestId("mode-modal");
+    expect(modal).toHaveTextContent(/^REAL/);
+    expect(modal).toHaveTextContent(/live PingOne token through AWS AgentCore Identity/);
+    expect(modal).toHaveTextContent(/real and short-lived/);
+    expect(modal).toHaveTextContent(/still the mock model/);
   });
 });
 
@@ -401,12 +425,12 @@ describe("links from the content pack: /#scenario-<id>", () => {
 });
 
 describe("accessibility structure and display safety", () => {
-  it("has the shell bar first, then one main landmark whose first child is the banner status, and a panel that is not the main", async () => {
+  it("has the shell bar first, then one main landmark with no simulation banner in it, and a panel that is not the main", async () => {
     await ready();
     expect(screen.getAllByRole("main")).toHaveLength(1);
     expect(screen.getByRole("banner")).toHaveClass("shell-bar");
     expect(screen.getByRole("banner").nextElementSibling).toBe(screen.getByRole("main")); // shell bar first, then main
-    expect(screen.getByRole("main").firstElementChild).toBe(screen.getByTestId("banner")); // the banner is main's first child
+    expect(screen.getByRole("main").querySelector("[data-testid=banner]")).toBeNull(); // the simulation banner is gone (the modal replaced it)
     expect(screen.getByRole("banner")).toContainElement(screen.getByRole("heading", { level: 1 }));
     expect(screen.getByRole("banner")).toContainElement(screen.getByTestId("top-menu"));
     expect(screen.getByRole("banner")).toContainElement(screen.getByRole("navigation", { name: "Lab sections" }));
@@ -427,13 +451,13 @@ const pickVertical = async (v) => { await userEvent.selectOptions(screen.getByLa
 const ALL_TABS = ["M2M gate", "USER_FEDERATION (3LO)", "On-behalf-of", "Diagram", "Talk track"];
 
 describe("release tabs: banner, mode and presenter", () => {
-  it("the on-behalf-of tab shows the release banner (and the mock-only line) on top of the simulation banner", async () => {
+  it("the on-behalf-of tab shows the release banner (and the mock-only line) with the mode modal over the page", async () => {
     await ready();
     expect(screen.queryByTestId("release-banner")).toBeNull(); // the other tabs are unchanged
     await openTab("On-behalf-of");
     expect(screen.getByTestId("release-banner")).toHaveTextContent(RELEASE_WORDS);
     expect(screen.getByTestId("release-banner")).toBeVisible();
-    expect(screen.getByTestId("banner")).toHaveTextContent(/^SIMULATED, MOCK mode/);
+    expect(screen.getByTestId("mode-modal")).toHaveTextContent(/^MOCK/);
     expect(screen.getByTestId("mode-select")).toHaveValue("mock");
     expect(await screen.findByTestId("obo-no-live")).toHaveTextContent("no Live engine");
   });
@@ -466,13 +490,13 @@ describe("release tabs: banner, mode and presenter", () => {
 });
 
 describe("render guard: changing the vertical on EVERY tab never blanks the page", () => {
-  it("every tab keeps the header, banner, tab strip and a non-empty panel across vertical changes", async () => {
+  it("every tab keeps the header, mode modal, tab strip and a non-empty panel across vertical changes", async () => {
     await ready();
     for (const name of ALL_TABS) {
       await openTab(name);
       for (const v of ["health", "retail"]) {
         await pickVertical(v);
-        expect(screen.getByTestId("banner")).toBeVisible();
+        expect(screen.getByTestId("mode-modal")).toBeVisible();
         expect(screen.getByRole("navigation", { name: "Lab sections" })).toBeInTheDocument();
         expect(screen.queryByTestId("tab-crash")).toBeNull();
         await waitFor(() => expect(screen.getByTestId("panel").textContent.length).toBeGreaterThan(20));
@@ -480,13 +504,13 @@ describe("render guard: changing the vertical on EVERY tab never blanks the page
       }
     }
   });
-  it("a tab that cannot be drawn shows a notice, keeps the banner and the tabs, and clears on another tab or another vertical", async () => {
+  it("a tab that cannot be drawn shows a notice, keeps the mode modal and the tabs, and clears on another tab or another vertical", async () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     try {
       override.obo = async (url) => (url === "/api/obo/evaluate" ? { ok: true, status: 200, json: async () => ({}) } : { ok: true, status: 200, json: async () => OBO_STORY }); // an answer with no result
       await ready(); await openTab("On-behalf-of");
       expect(await screen.findByTestId("tab-crash")).toHaveTextContent("could not be drawn");
-      expect(screen.getByTestId("banner")).toBeVisible(); expect(screen.getByTestId("release-banner")).toBeVisible(); expect(screen.getByRole("navigation", { name: "Lab sections" })).toBeInTheDocument();
+      expect(screen.getByTestId("mode-modal")).toBeVisible(); expect(screen.getByTestId("release-banner")).toBeVisible(); expect(screen.getByRole("navigation", { name: "Lab sections" })).toBeInTheDocument();
       await openTab("M2M gate");
       expect(screen.queryByTestId("tab-crash")).toBeNull(); expect(await screen.findByTestId("verdict")).toBeInTheDocument();
       override.obo = undefined; await openTab("On-behalf-of");

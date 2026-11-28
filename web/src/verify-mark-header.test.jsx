@@ -15,7 +15,7 @@ function withShelf(payload) {
     return new Response(JSON.stringify(body), { status: url === "/api/shelf" ? 200 : 404, headers: { "content-type": "application/json" } });
   });
 }
-beforeEach(() => { window.location.hash = ""; });
+beforeEach(() => { window.location.hash = ""; sessionStorage.clear(); });
 afterEach(() => { vi.restoreAllMocks(); });
 
 describe("verification mark in the header", () => {
