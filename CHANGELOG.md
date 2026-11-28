@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- AirGuard Airlines (a fictional airline) is the default story: a fourth vertical pack, `airlines` (agent and client `passenger-chat-agent`, host `airguard`), is the default on the server and in the web picker. The retail, health and finance packs are unchanged and still selectable. The M2M gate, USER_FEDERATION and on-behalf-of tabs, the talk track, the content pack and the example config now read as AirGuard Airlines; a test sweeps the rendered airline run for the old brands (Northwind, Contoso, Fabrikam, Meridian Air).
 - Diagram: arrow labels are drawn in a layer above the boxes and placed so none overlaps another label or sits on a box (the walked arrow's label turns bold and coloured and is raised); click a box and it expands in place with its details below its title: its kind, reach (boxes upstream and downstream), and the arrows in and out (each opens that box), on a card with colour that means something (blue where it is, green what it sends to, amber what reaches it). Click again, Close, the empty canvas or Reset collapses it; Copy link and `?box=<id>` open the page with a box expanded. The shared `diagram-kit` (vendored into `web/src/diagram-kit/`, pinned) does the work.
 
 ## 0.1.0 (2026-11-04)

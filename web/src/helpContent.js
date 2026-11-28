@@ -12,7 +12,7 @@ export const HELP_SECTIONS = [
     heading: "How to use the page",
     body: [
       "The nav tabs are: \"M2M gate\", \"USER_FEDERATION (3LO)\", \"On-behalf-of\", \"Real\", \"Diagram\", \"Talk track\". Each tab shows a scenario list; pick one and press its Run control to see the checks pass or fail and why.",
-      "In the header: the Mock/Real mode toggle, the vertical picker (e.g. retail), the theme and font-size menus, \"Presenter (P)\" (the P key also toggles it), the talk-track button, Reset, and Help.",
+      "In the header: the Mock/Real mode toggle, the vertical picker (e.g. airlines), the theme and font-size menus, \"Presenter (P)\" (the P key also toggles it), the talk-track button, Reset, and Help.",
       "The banner under the header always names the current mode. On the On-behalf-of tab a second release banner appears on top of it."
     ]
   },

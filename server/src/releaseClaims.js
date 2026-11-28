@@ -21,7 +21,7 @@ export const WHY = {
     slide: 48, feature: 'Intent, Purpose, Behaviour (slide 48; on-behalf-of is one of its six rows)',
     challenge: 'A tool name and arguments cannot say what was asked for, whether the agent was ever meant to do it, or whether it normally behaves this way. Policy built on the request alone cannot tell misuse from an agent doing its job.',
     technical: 'Three separable signals: deterministic intent patterns and purpose declarations refuse hard; learned behaviour baselines drive alerts and approval. On-behalf-of gives the backend a token issued to it, with the original caller named in act.',
-    business: 'The enforceable declaration "this agent exists to reconcile invoices" unblocks unattended agents in processes that could not otherwise approve them.',
+    business: 'The enforceable declaration "this agent exists to rebook disrupted passengers" unblocks unattended agents in processes that could not otherwise approve them.',
   },
   console: {
     slide: 45, feature: 'AI Platform Agents (slide 45; "Governing the gateway itself" is one of its rows)',

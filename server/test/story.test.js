@@ -11,7 +11,7 @@ const all = () => JSON.stringify([rawStory(), rawThreeLoStory(), rawDiagram()]);
 
 test('every {{token}} in the story, posture and diagram data is defined by every vertical (fails on an undefined token)', () => {
   for (const [name, cast] of Object.entries(VERTICALS)) assert.deepEqual(unfilled(all(), cast), [], name);
-  assert.equal(Object.keys(VERTICALS).length, 3);
+  assert.deepEqual(Object.keys(VERTICALS).sort(), ['airlines', 'finance', 'health', 'retail']);
 });
 
 test('the check itself catches an undefined token and leaves it visible', () => {

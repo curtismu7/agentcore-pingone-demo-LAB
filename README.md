@@ -51,7 +51,7 @@ What it shows (tabs):
 4. **Diagram** (ReactFlow, drawn from diagram-studio/1 data loaded by name: M2M gate, USER_FEDERATION, on-behalf-of; movable boxes, Simulate, speed control, Reset restores box positions).
 5. **Talk track** (generated from data, also in `docs/talk-track.md`). Presenter mode (`P`, `Esc` leaves; Cmd/Ctrl/Alt+P is ignored) keeps the simulation banner and shows the matching entries.
 
-Three vertical packs (retail, health, finance) change every name. Every row carries a tag: deck claim, console swagger name (schema only), lab reading, lab-invented, or measured (our note).
+Four vertical packs (airlines, retail, health, finance) change every name; the default is airlines (AirGuard Airlines, a fictional airline). Every row carries a tag: deck claim, console swagger name (schema only), lab reading, lab-invented, or measured (our note).
 
 ### Sources and status of claims
 

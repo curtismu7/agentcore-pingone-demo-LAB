@@ -98,11 +98,11 @@ test('GET /api/scenarios returns the filled story; customer.config.json is read 
     assert.equal(j.rule.requiredClaims[1].path, 'act.sub');
     assert.match(j.tokenLabel, /MOCK-ISSUED/);
     assert.ok(j.facts.some((f) => f.id === 'm2m-shape' && f.status === 'measured'));
-    assert.equal(j.rule.requiredClaims[1].equals, 'orders-agent');
+    assert.equal(j.rule.requiredClaims[1].equals, 'passenger-chat-agent');
     j = await (await fetch(`${url}/api/scenarios?vertical=finance`)).json();
     assert.equal(j.rule.requiredClaims[1].equals, 'payments-agent');
     j = await (await fetch(`${url}/api/scenarios?vertical=__proto__`)).json();
-    assert.equal(j.rule.requiredClaims[1].equals, 'orders-agent', 'unknown vertical keeps the default');
+    assert.equal(j.rule.requiredClaims[1].equals, 'passenger-chat-agent', 'unknown vertical keeps the default');
     fs.writeFileSync(file, JSON.stringify({ cast: { agentId: 'custom-agent' } }));
     j = await (await fetch(`${url}/api/scenarios`)).json();
     assert.equal(j.rule.requiredClaims[1].equals, 'custom-agent');
@@ -191,7 +191,7 @@ test('GET /api/diagram serves the m2m-gate diagram-studio data, uncached; by nam
     const j = await r.json();
     assert.equal(j.steps.length, 6);
     assert.ok(j.nodes.some((n) => n.label.includes('AgentCore Identity')));
-    assert.ok(j.steps[2].say.includes('orders-agent'));
+    assert.ok(j.steps[2].say.includes('passenger-chat-agent'));
     const lo = await (await fetch(`${url}/api/diagram?name=three-lo`)).json();
     assert.ok(lo.nodes.some((n) => n.label.includes('PingOne')));
     const obo = await (await fetch(`${url}/api/diagram?name=obo`)).json();
