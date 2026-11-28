@@ -8,6 +8,7 @@ import TalkTrack from "./components/TalkTrack";
 import RealRun from "./components/RealRun";
 import { getJson, resetWorkspace, requestModeSwitch } from "./api";
 import { NO_LIVE, RELEASE_BANNER } from "./releaseText";
+import ModeModal from "./mode-modal/ModeModal.jsx";
 import ShelfLink from "./components/ShelfLink.jsx";
 import VerifyMark from "./components/VerifyMark.jsx";
 import TopMenu, { applyFontSize } from "./top-menu/TopMenu.jsx";
@@ -36,11 +37,14 @@ export const TABS = [
   { id: "diagram", label: "Diagram" },
   { id: "talk", label: "Talk track" },
 ];
-// The two H2 2026 release tabs carry their own banner on top of the simulation banner, in presenter mode too.
+// The H2 2026 release tab carries its own release-claim banner (an UNVERIFIED label, not the simulation banner), in presenter mode too.
 export const RELEASE_TABS = ["obo"];
-// The banner is never blank: until /api/scenarios answers (or if it fails) this fixed text stands in. It names the mode, always mock here.
-const TAIL = "Nothing here calls a real gateway, identity provider or tenant.";
-export const BANNER_UNKNOWN = `SIMULATED, MOCK mode: a mock PingOne token and mock AgentCore checks. ${TAIL}`;
+// The Real-or-mock modal's lines (it replaced the simulation banner, which said the same two things from the server's story and a fixed fallback).
+// Until /api/info answers, or if it fails, the modal says MOCK: the cautious label.
+export const MODE_LINES = {
+  mock: "Everything on this page is simulated: a mock PingOne token and mock AgentCore checks. Nothing here calls a real gateway, identity provider, AWS account or tenant.",
+  real: "The Real tab mints a live PingOne token through AWS AgentCore Identity, and that token is real and short-lived. The scenario gate and the other tabs are still the mock model.",
+};
 
 const hashParts = () => {
   const h = window.location.hash.replace("#", "");
@@ -123,9 +127,6 @@ export default function App() {
     setResetMsg(ok ? "Reset: your workspace's evaluations are cleared, the modelled gateway is back as it was, and the diagram boxes are back in place." : "Reset failed on the server; the view was reset.");
   }, []);
 
-  const banner = info?.source === "real"
-    ? "REAL mode: the Real tab mints a live PingOne token through AWS AgentCore Identity. The scenario gate is still the mock model; the token on the Real tab is real and short-lived."
-    : story ? story.banner : BANNER_UNKNOWN;
   return (
     <div className={`app${presenter ? " app--presenter" : ""}`}>
       <header className="shell-bar">
@@ -158,7 +159,6 @@ export default function App() {
         </TopMenu>
       </header>
       <main className="page">
-        <p className="banner" role="status" data-state="mock" data-testid="banner">{banner}</p>
         {error && <p className="app-error" role="alert">Could not load the lab ({error}). Is the server running?</p>}
         <p className="sr-only" role="status" aria-live="polite">{resetMsg}</p>
         {!presenter && story && <p className="intro page-intro">{story.intro}</p>}
@@ -186,6 +186,7 @@ export default function App() {
       <HelpDialog isOpen={helpOpen} onClose={() => setHelpOpen(false)} sections={HELP_SECTIONS} docsUrl="https://github.com/curtismu7/agentcore-pingone-demo-LAB#readme" />
 
       </main>
+      <ModeModal mode={info?.source === "real" ? "real" : "mock"} lines={MODE_LINES} storageKey="apd-mode" />
     </div>
   );
 }
